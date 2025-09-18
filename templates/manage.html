@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Topics & Exams</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Tahoma', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-weight: 300;
+            line-height: 1.7;
+            color: #1a1a1a;
+            background-color: #fafafa;
+            padding: 0;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 60px 40px;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-family: 'Crimson Text', serif;
+            font-size: 2.8rem;
+            font-weight: 400;
+            margin-bottom: 3rem;
+            letter-spacing: -0.02em;
+            color: #000;
+        }
+
+        h2 {
+            font-family: 'Crimson Text', serif;
+            font-size: 1.5rem;
+            font-weight: 400;
+            margin: 3rem 0 1.5rem 0;
+            color: #000;
+        }
+
+        .flash-message {
+            background-color: #f0f9ff;
+            border-left: 3px solid #0ea5e9;
+            padding: 1rem 1.5rem;
+            margin: 2rem 0;
+            font-size: 0.95rem;
+            color: #0369a1;
+        }
+
+        .flash-message.error {
+            background-color: #fef2f2;
+            border-left-color: #ef4444;
+            color: #dc2626;
+        }
+
+        .flash-message.success {
+            background-color: #f0fdf4;
+            border-left-color: #22c55e;
+            color: #16a34a;
+        }
+
+        .action-buttons {
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 400;
+            padding: 0.9rem 2rem;
+            background-color: #000;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background-color: #333;
+        }
+
+        .btn-secondary {
+            background-color: #6b7280;
+        }
+
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+
+        .topics-table, .exams-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+        }
+
+        .topics-table th, .exams-table th {
+            text-align: left;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #666;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .topics-table td, .exams-table td {
+            padding: 1.2rem 0;
+            border-bottom: 1px solid #f5f5f5;
+            font-size: 1rem;
+            vertical-align: top;
+        }
+
+        .topic-name, .exam-name {
+            font-weight: 400;
+            color: #000;
+        }
+
+        .topic-meta, .exam-meta {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .modal-title {
+            font-family: 'Crimson Text', serif;
+            font-size: 1.8rem;
+            font-weight: 400;
+            color: #000;
+            margin: 0;
+        }
+
+        .close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close:hover {
+            color: #000;
+            background-color: #f5f5f5;
+            border-radius: 50%;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            font-weight: 400;
+            color: #333;
+            font-size: 0.95rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            font-family: inherit;
+            font-size: 0.95rem;
+            padding: 0.8rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background-color: white;
+            color: #333;
+            width: 100%;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .checkbox-group {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 1rem;
+            background-color: white;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .checkbox-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            margin-right: 0.5rem;
+            width: auto;
+        }
+
+        .checkbox-item label {
+            margin: 0;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .no-items {
+            text-align: center;
+            color: #666;
+            font-size: 1.1rem;
+            margin: 3rem 0;
+            font-style: italic;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 40px 20px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .topics-table,
+            .exams-table {
+                font-size: 0.9rem;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 1.5rem;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Manage Topics & Exams</h1>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn" onclick="openModal('topicModal')">Add New Topic</button>
+            <button class="btn btn-secondary" onclick="openModal('examModal')">Add New Exam Date</button>
+        </div>
+
+        <!-- Topics Section -->
+        <h2>Topics</h2>
+        {% if topics %}
+            <table class="topics-table">
+                <thead>
+                    <tr>
+                        <th>Topic Name</th>
+                        <th>Subject</th>
+                        <th>State</th>
+                        <th>Due Date</th>
+                        <th>Associated Exams</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for topic in topics %}
+                        <tr>
+                            <td class="topic-name">{{ topic.name }}</td>
+                            <td class="topic-meta">{{ topic.subject or 'No subject' }}</td>
+                            <td class="topic-meta">
+                                {% if topic.state == 1 %}Learning
+                                {% elif topic.state == 2 %}Review
+                                {% elif topic.state == 3 %}Relearning
+                                {% else %}Unknown{% endif %}
+                            </td>
+                            <td class="topic-meta">
+                                {% if topic.due %}
+                                    {{ topic.due.strftime('%Y-%m-%d %H:%M') }}
+                                {% else %}
+                                    No due date
+                                {% endif %}
+                            </td>
+                            <td class="topic-meta">
+                                {% if topic.exam_dates %}
+                                    {% for exam in topic.exam_dates %}
+                                        {{ exam.exam_name }} ({{ exam.exam_date.strftime('%Y-%m-%d') }})
+                                        {% if not loop.last %}<br>{% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    No exams
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="no-items">No topics found. Create your first topic using the button above.</p>
+        {% endif %}
+
+        <!-- Exam Dates Section -->
+        <h2>Exam Dates</h2>
+        {% if ed %}
+            <table class="exams-table">
+                <thead>
+                    <tr>
+                        <th>Exam Name</th>
+                        <th>Date</th>
+                        <th>Weight</th>
+                        <th>Associated Topics</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for exam in ed %}
+                        <tr>
+                            <td class="exam-name">{{ ed[exam]['name'] }}</td>
+                            <td class="exam-meta">{{ ed[exam]['date'] }}</td>
+                            <td class="exam-meta">{{ ed[exam]['weight'] }}</td>
+                            <td class="exam-meta">
+                                {% if ed[exam]['topics'] %}
+                                <ul>
+                                    {% for topic in ed[exam]['topics'] %}
+                                        <li>{{ topic }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="no-items">No exam dates found. Create your first exam date using the button above.</p>
+        {% endif %}
+    </div>
+
+    <!-- Add Topic Modal -->
+    <div id="topicModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Topic</h3>
+                <button class="close" onclick="closeModal('topicModal')">&times;</button>
+            </div>
+            <form method="POST" action="{{ url_for('add_topic') }}">
+                <div class="form-group">
+                    <label for="topic_name">Topic Name *</label>
+                    <input type="text" id="topic_name" name="topic_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="subject">Subject</label>
+                    <input type="text" id="subject" name="subject" placeholder="Optional">
+                </div>
+                <div class="form-group">
+                    <label>Associate with Existing Exams</label>
+                    {% if unique_exam_names %}
+                        <div class="checkbox-group">
+                            {% for exam_name in unique_exam_names %}
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="exam_{{ loop.index }}" name="exam_names" value="{{ exam_name }}">
+                                    <label for="exam_{{ loop.index }}">{{ exam_name }}</label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="topic-meta">No existing exams found. Create exam dates first or skip this step.</p>
+                    {% endif %}
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('topicModal')">Cancel</button>
+                    <button type="submit" class="btn">Create Topic</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Exam Date Modal -->
+    <div id="examModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Exam Date</h3>
+                <button class="close" onclick="closeModal('examModal')">&times;</button>
+            </div>
+            <form method="POST" action="{{ url_for('add_exam_date') }}">
+                <div class="form-group">
+                    <label for="exam_name">Exam Name *</label>
+                    <input type="text" id="exam_name" name="exam_name" required placeholder="e.g., Midterm Exam, Final Exam">
+                </div>
+                <div class="form-group">
+                    <label for="exam_date">Exam Date *</label>
+                    <input type="date" id="exam_date" name="exam_date" required>
+                </div>
+                <div class="form-group">
+                    <label for="exam_weight">Exam Weight</label>
+                    <input type="number" id="exam_weight" name="exam_weight" step="0.1" min="0.1" value="1.0" placeholder="1.0">
+                </div>
+                <div class="form-group">
+                    <label>Associate with Existing Topics *</label>
+                    {% if topics %}
+                        <div class="checkbox-group">
+                            {% for topic in topics %}
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="topic_{{ topic.id }}" name="topic_ids" value="{{ topic.id }}">
+                                    <label for="topic_{{ topic.id }}">
+                                        {{ topic.name }}
+                                        {% if topic.subject %}<span class="topic-meta"> ({{ topic.subject }})</span>{% endif %}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="topic-meta">No existing topics found. Please create topics first before adding exam dates.</p>
+                    {% endif %}
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('examModal')">Cancel</button>
+                    <button type="submit" class="btn" {% if not topics %}disabled{% endif %}>Create Exam Date</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    closeModal(modal.id);
+                }
+            });
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const openModal = document.querySelector('.modal.show');
+                if (openModal) {
+                    closeModal(openModal.id);
+                }
+            }
+        });
+
+        // Set minimum date to today for exam date input
+        document.addEventListener('DOMContentLoaded', function() {
+            const examDateInput = document.getElementById('exam_date');
+            if (examDateInput) {
+                const today = new Date().toISOString().split('T')[0];
+                examDateInput.setAttribute('min', today);
+            }
+        });
+    </script>
+</body>
+</html>

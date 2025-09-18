@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FSRS Topic Review Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Tahoma', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-weight: 300;
+            line-height: 1.7;
+            color: #1a1a1a;
+            background-color: #fafafa;
+            padding: 0;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px 40px;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-family: 'Crimson Text', serif;
+            font-size: 2.8rem;
+            font-weight: 400;
+            margin-bottom: 3rem;
+            letter-spacing: -0.02em;
+            color: #000;
+        }
+
+        h2 {
+            font-family: 'Crimson Text', serif;
+            font-size: 1.5rem;
+            font-weight: 400;
+            margin: 3rem 0 1.5rem 0;
+            color: #000;
+        }
+
+        .flash-message {
+            background-color: #f0f9ff;
+            border-left: 3px solid #0ea5e9;
+            padding: 1rem 1.5rem;
+            margin: 2rem 0;
+            font-size: 0.95rem;
+            color: #0369a1;
+        }
+
+        .topics-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+        }
+
+        .topics-table th {
+            text-align: left;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #666;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .topics-table td {
+            padding: 1.2rem 0;
+            border-bottom: 1px solid #f5f5f5;
+            font-size: 1rem;
+            vertical-align: top;
+        }
+
+        .topic-name {
+            font-weight: 400;
+            color: #000;
+        }
+
+        .topic-meta {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .form-section {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .form-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .form-table td {
+            padding: 1rem 0;
+            vertical-align: middle;
+        }
+
+        .form-table label {
+            font-weight: 400;
+            color: #333;
+            font-size: 0.95rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        select, input {
+            font-family: inherit;
+            font-size: 0.95rem;
+            padding: 0.8rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background-color: white;
+            color: #333;
+            width: 100%;
+            transition: border-color 0.2s ease;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        button {
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 400;
+            padding: 0.9rem 2rem;
+            background-color: #000;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-top: 1rem;
+        }
+
+        button:hover {
+            background-color: #333;
+        }
+
+        .no-topics {
+            text-align: center;
+            color: #666;
+            font-size: 1.1rem;
+            margin: 3rem 0;
+            font-style: italic;
+        }
+
+        .rating-options option {
+            padding: 0.5rem;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 40px 20px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .topics-table,
+            .form-table {
+                font-size: 0.9rem;
+            }
+        }
+
+        nav {
+            list-style-type:none;
+            display: flex;
+
+            &>li {
+                padding-right: 20px ;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <li><a href="{{ url_for('index') }}">Top 3</a></li>
+            <li><a href="{{ url_for('manage') }}">Manage</a></li>
+        </nav>
+        <h1>FSRS Topic Review Dashboard</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <h2>Current Priority Topics</h2>
+        <table class="topics-table">
+            <thead>
+                <tr>
+                    <th>Topic Name</th>
+                    <th>Subject</th>
+                    <th>Last Review</th>
+                    <th>Days Since Review</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in topic_data %}
+                <tr>
+                    <td class="topic-name">{{ item.topic.name }}</td>
+                    <td class="topic-meta">{{ item.topic.subject or 'N/A' }}</td>
+                    <td class="topic-meta">{{ item.topic.last_review.strftime('%Y-%m-%d') if item.topic.last_review else 'Never' }}</td>
+                    <td class="topic-meta">{{ item.days_since_last_review }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        {% if topic_data %}
+        <div class="form-section">
+            <h2>Log Review</h2>
+            <form method="POST">
+                <table class="form-table">
+                    <tr>
+                        <td style="width: 30%; padding-right: 2rem;">
+                            <label for="topic_id">Select Topic</label>
+                        </td>
+                        <td>
+                            <select name="topic_id" id="topic_id" required>
+                                <option value="">Choose a topic...</option>
+                                {% for item in topic_data %}
+                                <option value="{{ item.topic.id }}">{{ item.topic.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="rating">Rating</label>
+                        </td>
+                        <td>
+                            <select name="rating" id="rating" class="rating-options" required>
+                                <option value="">Choose rating...</option>
+                                <option value="1">Again (1) — Forgot completely</option>
+                                <option value="2">Hard (2) — Difficult to recall</option>
+                                <option value="3">Good (3) — Recalled with effort</option>
+                                <option value="4">Easy (4) — Easy to recall</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="retention_percentage">Retention % <span style="color: #888;">(optional)</span></label>
+                        </td>
+                        <td>
+                            <input type="number" name="retention_percentage" id="retention_percentage" 
+                                   min="0" max="100" step="0.1" placeholder="85.5">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="review_duration">Review Duration <span style="color: #888;">(seconds, optional)</span></label>
+                        </td>
+                        <td>
+                            <input type="number" name="review_duration" id="review_duration" 
+                                   min="1" placeholder="120">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <button type="submit">Log Review</button>
+                        </td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+        {% else %}
+        <div class="no-topics">No topics due for review at this time.</div>
+        {% endif %}
+    </div>
+</body>
+</html>
