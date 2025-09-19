@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Statistics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .exam-card {
+            transition: all 0.3s ease;
+        }
+        .exam-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .risk-high { border-left: 5px solid #dc3545; }
+        .risk-medium { border-left: 5px solid #ffc107; }
+        .risk-low { border-left: 5px solid #28a745; }
+        .preparation-bar {
+            height: 20px;
+            border-radius: 10px;
+            background-color: #e9ecef;
+            overflow: hidden;
+        }
+        .preparation-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">Topic Manager</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{{ url_for('index') }}">Dashboard</a>
+                <a class="nav-link" href="{{ url_for('manage') }}">Manage</a>
+                <a class="nav-link" href="{{ url_for('statistics') }}">Statistics</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Exam Statistics</h1>
+            <a href="{{ url_for('statistics') }}" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+
+        <!-- Overall Exam Summary -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <h4>{{ exam_stats|length }}</h4>
+                        <p class="mb-0">Total Exams</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <h4>{{ exam_stats|selectattr('risk_level', 'eq', 'Low')|list|length }}</h4>
+                        <p class="mb-0">Low Risk</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body text-center">
+                        <h4>{{ exam_stats|selectattr('risk_level', 'eq', 'Medium')|list|length }}</h4>
+                        <p class="mb-0">Medium Risk</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-danger text-white">
+                    <div class="card-body text-center">
+                        <h4>{{ exam_stats|selectattr('risk_level', 'eq', 'High')|list|length }}</h4>
+                        <p class="mb-0">High Risk</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exam Cards -->
+        {% for exam in exam_stats %}
+        <div class="card exam-card mb-4 
+            {% if exam.risk_level == 'High' %}risk-high
+            {% elif exam.risk_level == 'Medium' %}risk-medium
+            {% else %}risk-low{% endif %}">
+            
+            <div class="card-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4 class="mb-0">{{ exam.exam_name }}</h4>
+                        <p class="text-muted mb-0">
+                            {{ exam.exam_date.strftime('%B %d, %Y') }}
+                            {% if exam.days_to_exam >= 0 %}
+                                ({{ exam.days_to_exam }} days away)
+                            {% else %}
+                                ({{ -exam.days_to_exam }} days ago)
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <span class="badge 
+                            {% if exam.risk_level == 'High' %}bg-danger
+                            {% elif exam.risk_level == 'Medium' %}bg-warning
+                            {% else %}bg-success{% endif %} fs-6">
+                            {{ exam.risk_level }} Risk
+                        </span>
+                        <button class="btn btn-sm btn-outline-primary ms-2" 
+                                onclick="showExamChart('{{ exam.exam_name }}')">
+                            View Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <!-- Preparation Score Bar -->
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <strong>Preparation Score:</strong>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="preparation-bar">
+                            <div class="preparation-fill 
+                                {% if exam.preparation_score >= 80 %}bg-success
+                                {% elif exam.preparation_score >= 60 %}bg-warning
+                                {% else %}bg-danger{% endif %}"
+                                style="width: {{ exam.preparation_score }}%"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <strong>{{ exam.preparation_score }}%</strong>
+                    </div>
+                </div>
+                
+                <!-- Key Statistics Row -->
+                <div class="row text-center mb-3">
+                    <div class="col-md-2">
+                        <div class="bg-light p-2 rounded">
+                            <small class="text-muted">Topics</small>
+                            <div class="h5 mb-0">{{ exam.total_topics }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="bg-light p-2 rounded">
+                            <small class="text-muted">Reviews</small>
+                            <div class="h5 mb-0">{{ exam.total_reviews }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="bg-light p-2 rounded">
+                            <small class="text-muted">Avg Readiness</small>
+                            <div class="h5 mb-0 
+                                {% if exam.avg_retrievability >= 80 %}text-success
+                                {% elif exam.avg_retrievability >= 60 %}text-warning
+                                {% else %}text-danger{% endif %}">
+                                {{ exam.avg_retrievability }}%
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="bg-light p-2 rounded">
+                            <small class="text-muted">Min Readiness</small>
+                            <div class="h5 mb-0 
+                                {% if exam.min_retrievability >= 60 %}text-success
+                                {% elif exam.min_retrievability >= 40 %}text-warning
+                                {% else %}text-danger{% endif %}">
+                                {{ exam.min_retrievability }}%
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="bg-light p-2 rounded">
+                            <small class="text-muted">High Ready</small>
+                            <div class="h5 mb-0 text-success">{{ exam.high_readiness }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="bg-light p-2 rounded">
+                            <small class="text-muted">Low Ready</small>
+                            <div class="h5 mb-0 text-danger">{{ exam.low_readiness }}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Topics List -->
+                <div>
+                    <h6>Topics for this exam:</h6>
+                    <div class="d-flex flex-wrap">
+                        {% for topic in exam.topics %}
+                        <span class="badge bg-secondary me-1 mb-1">{{ topic.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        {% if not exam_stats %}
+        <div class="alert alert-info text-center">
+            <h5>No Exam Data Available</h5>
+            <p>Add exam dates to your topics to see preparation statistics here.</p>
+            <a href="{{ url_for('manage') }}" class="btn btn-primary">Add Exam Dates</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Chart Modal -->
+    <div class="modal fade" id="examChartModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Exam Preparation Analysis</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Topic Retrievability</h6>
+                            <div class="chart-container" style="height: 300px;">
+                                <canvas id="retrievabilityChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Topic Priority Scores</h6>
+                            <div class="chart-container" style="height: 300px;">
+                                <canvas id="priorityChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        let retrievabilityChart = null;
+        let priorityChart = null;
+        
+        function showExamChart(examName) {
+            fetch(`/api/exam_preparation_data/${encodeURIComponent(examName)}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Destroy existing charts
+                    if (retrievabilityChart) retrievabilityChart.destroy();
+                    if (priorityChart) priorityChart.destroy();
+                    
+                    // Retrievability Chart
+                    const ctx1 = document.getElementById('retrievabilityChart').getContext('2d');
+                    retrievabilityChart = new Chart(ctx1, {
+                        type: 'bar',
+                        data: {
+                            labels: data.topics,
+                            datasets: [{
+                                label: 'Retrievability %',
+                                data: data.retrievability,
+                                backgroundColor: data.retrievability.map(val => 
+                                    val >= 80 ? 'rgba(40, 167, 69, 0.8)' :
+                                    val >= 50 ? 'rgba(255, 193, 7, 0.8)' :
+                                    'rgba(220, 53, 69, 0.8)'
+                                ),
+                                borderColor: data.retrievability.map(val => 
+                                    val >= 80 ? 'rgba(40, 167, 69, 1)' :
+                                    val >= 50 ? 'rgba(255, 193, 7, 1)' :
+                                    'rgba(220, 53, 69, 1)'
+                                ),
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100,
+                                    title: {
+                                        display: true,
+                                        text: 'Retrievability %'
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        maxRotation: 45,
+                                        minRotation: 45
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Priority Chart
+                    const ctx2 = document.getElementById('priorityChart').getContext('2d');
+                    priorityChart = new Chart(ctx2, {
+                        type: 'bar',
+                        data: {
+                            labels: data.topics,
+                            datasets: [{
+                                label: 'Priority Score',
+                                data: data.priority_scores,
+                                backgroundColor: data.priority_scores.map(val => 
+                                    val >= 0.5 ? 'rgba(220, 53, 69, 0.8)' :
+                                    val >= 0.2 ? 'rgba(255, 193, 7, 0.8)' :
+                                    'rgba(40, 167, 69, 0.8)'
+                                ),
+                                borderColor: data.priority_scores.map(val => 
+                                    val >= 0.5 ? 'rgba(220, 53, 69, 1)' :
+                                    val >= 0.2 ? 'rgba(255, 193, 7, 1)' :
+                                    'rgba(40, 167, 69, 1)'
+                                ),
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Priority Score'
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        maxRotation: 45,
+                                        minRotation: 45
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Show modal
+                    document.querySelector('#examChartModal .modal-title').textContent = `${examName} - Preparation Analysis`;
+                    const modal = new bootstrap.Modal(document.getElementById('examChartModal'));
+                    modal.show();
+                })
+                .catch(error => console.error('Error loading exam data:', error));
+        }
+    </script>
+</body>
+</html>

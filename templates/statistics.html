@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Statistics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .stat-card h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 15px;
+        }
+        .topic-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .topic-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .topic-item:last-child {
+            border-bottom: none;
+        }
+        .mastery-bar {
+            width: 60px;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .mastery-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        .mastery-low { background: #ff4757; }
+        .mastery-medium { background: #ffa502; }
+        .mastery-high { background: #2ed573; }
+        .exam-card {
+            border-left: 4px solid #007bff;
+        }
+        .exam-urgent { border-left-color: #ff4757; }
+        .exam-upcoming { border-left-color: #ffa502; }
+        .exam-distant { border-left-color: #2ed573; }
+        .recommendation {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-style: italic;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            background: white;
+            border: none;
+            transition: background 0.3s;
+        }
+        .tab.active {
+            background: #007bff;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Study Statistics</h1>
+            <p>Track your learning progress with intuitive insights</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('overview')">📈 Overview</button>
+            <button class="tab" onclick="showTab('topics')">📚 Topics</button>
+            <button class="tab" onclick="showTab('exams')">🎯 Exams</button>
+        </div>
+
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>📅 Study Activity (Last 30 Days)</h3>
+                    <div class="chart-container">
+                        <canvas id="activityChart"></canvas>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <h3>📖 Subject Distribution</h3>
+                    <div class="chart-container">
+                        <canvas id="subjectChart"></canvas>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <h3>⭐ Rating Distribution</h3>
+                    <div class="chart-container">
+                        <canvas id="ratingChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Topics Tab -->
+        <div id="topics" class="tab-content">
+            <div class="stats-grid" id="topicStats">
+                <!-- Topic statistics will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Exams Tab -->
+        <div id="exams" class="tab-content">
+            <div class="stats-grid" id="examStats">
+                <!-- Exam statistics will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+            
+            // Load data based on tab
+            if (tabName === 'topics') {
+                loadTopicStatistics();
+            } else if (tabName === 'exams') {
+                loadExamStatistics();
+            }
+        }
+
+        // Load overview charts
+        async function loadOverview() {
+            try {
+                const response = await fetch('/api/study-analytics');
+                const data = await response.json();
+                
+                // Activity Chart
+                const activityCtx = document.getElementById('activityChart').getContext('2d');
+                new Chart(activityCtx, {
+                    type: 'line',
+                    data: {
+                        labels: data.daily_activity.map(d => d.date),
+                        datasets: [{
+                            label: 'Reviews',
+                            data: data.daily_activity.map(d => d.reviews),
+                            borderColor: '#007bff',
+                            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                // Subject Chart
+                const subjectCtx = document.getElementById('subjectChart').getContext('2d');
+                new Chart(subjectCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.subject_distribution.map(s => s.subject),
+                        datasets: [{
+                            data: data.subject_distribution.map(s => s.topics),
+                            backgroundColor: [
+                                '#007bff', '#28a745', '#ffc107', '#dc3545', 
+                                '#6f42c1', '#fd7e14', '#20c997', '#6610f2'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+
+                // Rating Chart
+                const ratingCtx = document.getElementById('ratingChart').getContext('2d');
+                new Chart(ratingCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.rating_distribution.map(r => r.label),
+                        datasets: [{
+                            label: 'Count',
+                            data: data.rating_distribution.map(r => r.count),
+                            backgroundColor: ['#dc3545', '#ffc107', '#28a745', '#007bff']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error loading overview:', error);
+            }
+        }
+
+        // Load topic statistics
+        async function loadTopicStatistics() {
+            try {
+                const response = await fetch('/api/topic-statistics');
+                const topics = await response.json();
+                
+                const container = document.getElementById('topicStats');
+                container.innerHTML = '';
+                
+                topics.forEach(topic => {
+                    const masteryClass = topic.mastery_score >= 70 ? 'mastery-high' : 
+                                       topic.mastery_score >= 40 ? 'mastery-medium' : 'mastery-low';
+                    
+                    const trendEmoji = topic.trend === 'improving' ? '📈' : 
+                                      topic.trend === 'declining' ? '📉' : '➖';
+                    
+                    const card = document.createElement('div');
+                    card.className = 'stat-card';
+                    card.innerHTML = `
+                        <h3>${topic.name} (${topic.subject})</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                            <div>
+                                <strong>Reviews:</strong> ${topic.total_reviews}<br>
+                                <strong>Avg Rating:</strong> ${topic.avg_rating}/4<br>
+                                <strong>State:</strong> ${topic.state}
+                            </div>
+                            <div>
+                                <strong>Streak:</strong> ${topic.study_streak} days<br>
+                                <strong>Last Review:</strong> ${topic.days_since_review} days ago<br>
+                                <strong>Trend:</strong> ${trendEmoji} ${topic.trend}
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span>Mastery: ${topic.mastery_score}%</span>
+                                <div class="mastery-bar">
+                                    <div class="mastery-fill ${masteryClass}" style="width: ${topic.mastery_score}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>Retention: ${topic.retrievability}%</span>
+                            <div class="mastery-bar">
+                                <div class="mastery-fill ${topic.retrievability >= 70 ? 'mastery-high' : topic.retrievability >= 40 ? 'mastery-medium' : 'mastery-low'}" style="width: ${topic.retrievability}%"></div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+                
+            } catch (error) {
+                console.error('Error loading topic statistics:', error);
+            }
+        }
+
+        // Load exam statistics
+        async function loadExamStatistics() {
+            try {
+                const response = await fetch('/api/exam-statistics');
+                const exams = await response.json();
+                
+                const container = document.getElementById('examStats');
+                container.innerHTML = '';
+                
+                exams.forEach(exam => {
+                    const statusClass = `exam-${exam.status}`;
+                    const statusEmoji = exam.status === 'urgent' ? '🚨' : 
+                                       exam.status === 'upcoming' ? '⏰' : 
+                                       exam.status === 'today' ? '🎯' : '📅';
+                    
+                    const card = document.createElement('div');
+                    card.className = `stat-card ${statusClass}`;
+                    card.innerHTML = `
+                        <h3>${statusEmoji} ${exam.exam_name}</h3>
+                        <p><strong>Date:</strong> ${exam.exam_date} (${exam.days_until_exam} days)</p>
+                        
+                        <div style="margin: 15px 0;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span>Readiness: ${exam.readiness_percentage}%</span>
+                                <span>${exam.ready_topics}/${exam.total_topics} topics ready</span>
+                            </div>
+                            <div class="mastery-bar" style="width: 100%;">
+                                <div class="mastery-fill ${exam.readiness_percentage >= 70 ? 'mastery-high' : exam.readiness_percentage >= 40 ? 'mastery-medium' : 'mastery-low'}" style="width: ${exam.readiness_percentage}%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="recommendation">
+                            💡 ${exam.recommendation}
+                        </div>
+                        
+                        ${exam.weak_topics.length > 0 ? `
+                            <div style="margin-top: 15px;">
+                                <strong>🔴 Weak Topics:</strong>
+                                <div class="topic-list">
+                                    ${exam.weak_topics.map(topic => `
+                                        <div class="topic-item">
+                                            <span>${topic.name}</span>
+                                            <span>${topic.mastery}%</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${exam.strong_topics.length > 0 ? `
+                            <div style="margin-top: 15px;">
+                                <strong>🟢 Strong Topics:</strong>
+                                <div class="topic-list">
+                                    ${exam.strong_topics.map(topic => `
+                                        <div class="topic-item">
+                                            <span>${topic.name}</span>
+                                            <span>${topic.mastery}%</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    `;
+                    container.appendChild(card);
+                });
+                
+            } catch (error) {
+                console.error('Error loading exam statistics:', error);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadOverview();
+        });
+    </script>
+</body>
+</html>
