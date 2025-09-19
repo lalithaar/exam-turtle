@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask,render_template
 from models import db
 
 app = Flask(__name__)
@@ -7,6 +7,10 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your_secret_key'
 
 db.init_app(app)
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
 
 # from flask import Flask, render_template, request, redirect, url_for, flash,jsonify
 # from datetime import datetime, timezone,timedelta
