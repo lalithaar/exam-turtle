@@ -12,6 +12,10 @@ db.init_app(app)
 def about():
     return render_template('about.html')
 
+
+@app.route('/base')
+def testbase():
+    return render_template('base.html')
 # from flask import Flask, render_template, request, redirect, url_for, flash,jsonify
 # from datetime import datetime, timezone,timedelta
 # from models import Topic, TopicReviewLog, TopicExamDate, TopicScheduler, Rating, ensure_timezone_aware, now_ist
