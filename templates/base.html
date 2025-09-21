@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Exam Turtle{% endblock %}</title>
-    <!-- import crimson text -->
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
@@ -15,6 +14,15 @@
             box-sizing: border-box;
             font-family: 'Tahoma', 'Times New Roman', serif;
 
+        }
+
+        .logo {
+            font-family: 'Crimson Text', serif;
+            font-size: 24px;
+            font-weight: bold;
+            color: #000;
+            letter-spacing: 2px;
+            margin-right: 40px;
         }
 
         body {
@@ -446,6 +454,7 @@
 </head>
 <body>
     <nav class="nav">
+        <span class="logo">Exam Turtle</span>
         <ul>
             <li><a href="{{ url_for('bp.dashboard') }}" {% if request.endpoint == 'dashboard' %}class="active"{% endif %}>Dashboard</a></li>
             <li><a href="{{ url_for('bp.exams_list') }}" {% if request.endpoint.startswith('exams') %}class="active"{% endif %}>Exams</a></li>

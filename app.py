@@ -13,7 +13,11 @@ db.init_app(app)
 def about():
     return render_template('about.html')
 
+@app.route('/guide/how-to-review')
+def howto_review():
+    return render_template('howto_review.html')
 
+    
 from blueprints.routes import bp
 app.register_blueprint(bp)
 

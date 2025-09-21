@@ -1,56 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About - Exam Turtle</title>
-    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+{% extends "base.html" %}
+{% block title %}About - Exam Turtle{% endblock %}
+{% block extra_css %}
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
 
-        body {
-            font-family: 'Tahoma', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-weight: 300;
-            line-height: 1.7;
-            color: #1a1a1a;
-            background-color: #fafafa;
-            padding: 0;
-            margin: 0;
-        }
-
-        .container {
+        .container-about {
             max-width: 800px;
             margin: 0 auto;
             padding: 60px 40px;
             min-height: 100vh;
-        }
-
-        h1 {
-            font-family: 'Crimson Text', serif;
-            font-size: 2.8rem;
-            font-weight: 400;
-            margin-bottom: 3rem;
-            letter-spacing: -0.02em;
-            color: #000;
-        }
-
-        h2 {
-            font-family: 'Crimson Text', serif;
-            font-size: 1.5rem;
-            font-weight: 400;
-            margin: 2.5rem 0 1rem 0;
-            color: #000;
-            letter-spacing: -0.01em;
-        }
-
-        p {
-            margin-bottom: 1.5rem;
-            font-size: 1.1rem;
-            line-height: 1.8;
         }
 
         em {
@@ -103,46 +60,41 @@
             font-size: 0.95rem;
         }
 
-        nav {
-            margin-bottom: 2rem;
+        .review-callout {
+            background: #f0f8f0;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
         }
 
-        nav a {
-            color: #333;
-            text-decoration: none;
-            font-size: 0.95rem;
-            margin-right: 1.5rem;
-            transition: color 0.2s ease;
+        .review-callout h3 {
+            color: #155724;
+            margin-top: 0;
+            margin-bottom: 1rem;
         }
 
-        nav a:hover {
-            color: #000;
+        .review-callout a {
+            color: #155724;
+            font-weight: 500;
+            text-decoration: underline;
         }
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 40px 20px;
-            }
-            
-            h1 {
-                font-size: 2.2rem;
-            }
-            
-            h2 {
-                font-size: 1.3rem;
-            }
+        .review-callout a:hover {
+            color: #0c3d20;
         }
+
+        .review-callout  > ul {
+            list-style: disc;
+            padding-left: 1.5rem;
+            margin: 0 0 1rem 0;
+        }
+
     </style>
-</head>
-<body>
-    <div class="container">
-        <nav>
-            <a href="#">Dashboard</a>
-            <a href="#">Topics</a>
-            <a href="#">Exams</a>
-            <a href="{{ url_for('bp.about') }}">About</a>
-        </nav>
-
+{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="container-about">
         <h1>About Exam Turtle</h1>
 
         <div class="quote">
@@ -150,48 +102,68 @@
         </div>
 
         <p>
-            As much as we love cramming, turtles are the way to go for exams. Exam Turtle embodies the timeless wisdom of Aesop's fable—consistent, deliberate progress trumps frantic last-minute efforts every time.
+            As much as we love cramming, turtles are the way to go for exams. Exam Turtle embodies the timeless wisdom of Aesop's fable—when you take it slow, rest well, nourish yourself, and study consistently, you perform far better than frantic last-minute efforts.
         </p>
 
         <h2>The Philosophy</h2>
 
         <p>
-            Learning isn't about intensity; it's about <em>consistency</em>. Your brain doesn't care how hard you studied yesterday—it cares about the patterns you build over time. Exam Turtle leverages this fundamental truth through spaced repetition, but unlike traditional flashcard systems, it works with <em>topics</em>.
+            Learning isn't about grinding harder; it's about caring for yourself while building <em>consistent patterns</em>. Your brain performs best when you're well-rested, properly fed, and approaching study with a calm, steady rhythm. Exam Turtle leverages this fundamental truth through spaced repetition, but unlike traditional flashcard systems, it works with <em>topics</em>.
         </p>
 
         <p>
             Many subjects simply don't fit the flashcard format. Complex theories, mathematical proofs, essay topics, case studies—these require a different approach. That's where Exam Turtle shines. It applies the proven science of spaced repetition to any topic you're studying, regardless of format.
         </p>
 
-        <h2>Learning With You</h2>
+        <h2>What We Mean by "Review"</h2>
 
         <p>
-            The app works better for you the more honest you are with it. When you review a topic and rate how well you understood it, you're not just logging progress—you're teaching the system about your learning patterns. The algorithm adapts to <em>your</em> memory, <em>your</em> strengths, and <em>your</em> challenges.
+            When we say "review," we don't mean passively re-reading notes or highlighting textbooks. True review means <em>active recall</em>—actively retrieving information from memory without looking at your materials first.
+        </p>
+
+        <div class="review-callout">
+            <h3>Active Recall Examples:</h3>
+            <ul>
+                <li>Explaining a concept out loud without notes</li>
+                <li>Writing down everything you remember about a topic</li>
+                <li>Teaching the material to someone else</li>
+                <li>Solving problems from memory first, then checking</li>
+                <li>Creating concept maps or summaries without references</li>
+            </ul>
+            <p><strong>Want detailed review techniques?</strong> <a href="{{ url_for('howto_review') }}">Check out our complete guide to effective reviewing →</a></p>
+        </div>
+
+        <h2>Learning With Care</h2>
+
+        <p>
+            The app works better for you the more honest you are with it—and with yourself. When you review a topic and rate how well you understood it, you're not just logging progress—you're teaching the system about your learning patterns while practicing self-awareness.
         </p>
 
         <p>
-            Honesty isn't about being harsh on yourself. It's about being <em>accurate</em>. Rate that economics concept as "Hard" if it was hard. Mark that physics problem as "Easy" if it clicked immediately. The algorithm uses this information to schedule your next review at the optimal time—not too soon to waste your time, not too late to let you forget.
+            Honesty isn't about being harsh on yourself. It's about being <em>accurate and kind</em>. Rate that economics concept as "Hard" if it was hard, but remember that difficulty is part of learning. Mark that physics problem as "Easy" if it clicked immediately, and celebrate that moment. The algorithm uses this information to schedule your next review at the optimal time—giving you space to rest and consolidate.
         </p>
 
         <div class="values">
             <h3>Our Values</h3>
             <ul>
-                <li><strong>Honesty</strong> — Progress comes from accurate self-assessment</li>
-                <li><strong>Kindness</strong> — Learning should be encouraging, not punishing</li>
-                <li><strong>Simplicity</strong> — Complexity is the enemy of consistency</li>
+                <li><strong>Self-Care</strong> — Learning thrives when you take care of your whole self</li>
+                <li><strong>Honesty</strong> — Progress comes from accurate, kind self-assessment</li>
+                <li><strong>Sustainability</strong> — Consistent care over unsustainable grinding</li>
+                <li><strong>Rest</strong> — Your brain consolidates memories during downtime</li>
+                <li><strong>Nourishment</strong> — Good food, sleep, and movement fuel learning</li>
+                <li><strong>Patience</strong> — Deep understanding takes time to develop</li>
                 <li><strong>Transparency</strong> — You deserve to understand how your learning works</li>
-                <li><strong>Sustainability</strong> — Small, consistent efforts over unsustainable bursts</li>
             </ul>
         </div>
 
         <h2>How It Works</h2>
 
         <p>
-            Exam Turtle uses the FSRS (Free Spaced Repetition Scheduler) algorithm—a modern, research-backed approach to spaced repetition. Unlike fixed intervals, FSRS adapts to your individual learning patterns, becoming more accurate the more you use it.
+            Exam Turtle uses the FSRS (Free Spaced Repetition Scheduler) algorithm—a modern, research-backed approach to spaced repetition. Unlike fixed intervals, FSRS adapts to your individual learning patterns and gives you the rest periods your brain needs to consolidate memories.
         </p>
 
         <p>
-            The system tracks your retention patterns and schedules reviews when you're most likely to forget—the optimal moment for reinforcement. This isn't just efficient; it's how memory actually works.
+            The system tracks your retention patterns and schedules reviews when you're most likely to forget—the optimal moment for reinforcement. This isn't just efficient; it's how memory actually works. The intervals give you time to sleep, eat well, and live your life while your brain does its work.
         </p>
 
         <h2>Open Source, Open Future</h2>
@@ -208,23 +180,23 @@
             <p><strong>For the technically curious:</strong> Exam Turtle implements the FSRS algorithm with topic-level granularity rather than card-level. This allows for more flexible study materials while maintaining the mathematical rigor of spaced repetition research. The system learns your individual retention patterns and optimizes review timing accordingly.</p>
         </div>
 
-        <h2>Start Slow, Finish Strong</h2>
+        <h2>Start Slow, Take Care, Finish Strong</h2>
 
         <p>
-            Like the turtle in the fable, Exam Turtle doesn't promise overnight success. What it offers is something better: a sustainable system that compounds your learning over time. 
+            Like the turtle in the fable, Exam Turtle doesn't promise overnight success. What it offers is something better: a sustainable system that honors your wellbeing while building deep, lasting knowledge.
         </p>
 
         <p>
-            Begin with just a few topics. Be honest about your understanding. Review consistently, not intensively. Trust the process.
+            Begin with just a few topics. Get enough sleep. Eat nourishing food. Take breaks. Be honest about your understanding. Review consistently, not intensively. Trust the process—and trust yourself.
         </p>
 
         <p>
-            The race isn't won by who studies hardest—it's won by who studies smartest.
+            The race isn't won by who grinds hardest—it's won by who takes the best care of themselves while learning steadily.
         </p>
 
         <div class="quote">
-            Welcome to the turtle way.
+            Welcome to the turtle way: slow, steady, and kind to yourself.
         </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}
