@@ -345,16 +345,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    function confirmDelete() {
-        if (confirm('Are you sure you want to delete "{{ topic.name }}"? This will remove all review history and cannot be undone.')) {
-            // Create form and submit
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '{{ url_for("delete_topic", topic_id=topic.id) }}';
-            document.body.appendChild(form);
-            form.submit();
-        }
-    }
-</script>
+<!-- add confirm delete later -->
 {% endblock %}
