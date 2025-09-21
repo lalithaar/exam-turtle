@@ -1,0 +1,439 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Exam Turtle{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .metric-card {
+        border: 2px solid #000;
+        padding: 20px;
+        text-align: center;
+        background: #f9f9f9;
+    }
+    
+    .metric-value {
+        font-size: 36px;
+        font-weight: bold;
+        display: block;
+        margin-bottom: 5px;
+    }
+    
+    .metric-label {
+        font-size: 14px;
+        color: #666;
+        text-transform: uppercase;
+    }
+    
+    .chart-container {
+        border: 2px solid #000;
+        padding: 20px;
+        margin-bottom: 20px;
+        background: #fff;
+    }
+    
+    .week-bar {
+        display: flex;
+        align-items: end;
+        height: 200px;
+        border-bottom: 2px solid #000;
+        border-left: 2px solid #000;
+        padding: 10px;
+        gap: 20px;
+    }
+    
+    .bar {
+        flex: 1;
+        background: #2ecc71;
+        display: flex;
+        flex-direction: column;
+        justify-content: end;
+        align-items: center;
+        padding: 5px;
+        color: #fff;
+        font-weight: bold;
+        font-size: 12px;
+        min-height: 20px;
+    }
+    
+    .bar.low { background: #e74c3c; }
+    .bar.medium { background: #f39c12; }
+    
+    .bar-labels {
+        display: flex;
+        gap: 20px;
+        padding: 10px;
+        font-size: 12px;
+        text-align: center;
+    }
+    
+    .bar-label {
+        flex: 1;
+    }
+    
+    .subject-item {
+        border: 1px solid #ddd;
+        padding: 15px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .subject-info {
+        flex: 1;
+    }
+    
+    .subject-status {
+        text-align: right;
+        min-width: 100px;
+    }
+    
+    .insights-section {
+        background: #f5f5f5;
+        border: 2px solid #000;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .insight-item {
+        margin-bottom: 15px;
+        padding: 10px;
+        background: #fff;
+        border-left: 4px solid #2ecc71;
+    }
+    
+    .insight-item.warning { border-left-color: #f39c12; }
+    .insight-item.critical { border-left-color: #e74c3c; }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>Learning Analytics</h1>
+
+<!-- Quick Metrics -->
+<div class="analytics-grid">
+    <div class="metric-card">
+        <span class="metric-value">{{ dashboard_data.recent_activity.reviews_completed }}</span>
+        <span class="metric-label">Reviews This Week</span>
+    </div>
+    
+    <div class="metric-card">
+        <span class="metric-value">{{ dashboard_data.recent_activity.study_hours }}h</span>
+        <span class="metric-label">Study Hours This Week</span>
+    </div>
+    
+    <div class="metric-card">
+        <span class="metric-value">{{ dashboard_data.recent_activity.current_streak }}</span>
+        <span class="metric-label">Current Study Streak</span>
+    </div>
+    
+    <div class="metric-card">
+        <span class="metric-value">{{ dashboard_data.knowledge_overview.total_topics }}</span>
+        <span class="metric-label">Total Topics</span>
+    </div>
+    
+    <div class="metric-card">
+        <span class="metric-value">{{ "%.0f"|format(dashboard_data.knowledge_overview.avg_confidence * 100) }}%</span>
+        <span class="metric-label">Average Confidence</span>
+    </div>
+    
+    <div class="metric-card">
+        <span class="metric-value">{{ dashboard_data.due_for_review.count }}</span>
+        <span class="metric-label">Topics Due</span>
+    </div>
+</div>
+
+<div class="container">
+    <div class="main-content">
+        <!-- Weekly Progress Chart -->
+        <div class="chart-container">
+            <h2>Weekly Progress (Last 4 Weeks)</h2>
+            
+            <div class="week-bar">
+                {% for week in weekly_stats %}
+                    {% set bar_height = (week.total_reviews / 50 * 180)|round %}
+                    {% set bar_class = 'bar' if week.success_rate >= 80 else 'bar medium' if week.success_rate >= 60 else 'bar low' %}
+                    <div class="{{ bar_class }}" style="height:{{ [20, bar_height] | max }}px;">
+                        <div>{{ week.total_reviews }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <div class="bar-labels">
+                {% for week in weekly_stats %}
+                    <div class="bar-label">
+                        <div><strong>{{ week.week_start }}</strong></div>
+                        <div>{{ week.total_reviews }} reviews</div>
+                        <div>{{ "%.0f"|format(week.success_rate) }}% success</div>
+                        <div>{{ week.study_hours }}h study</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Knowledge Overview -->
+        <div class="chart-container">
+            <h2>Knowledge Distribution</h2>
+            
+            <div style="display: flex; justify-content: space-around; text-align: center; margin-bottom: 20px;">
+                <div>
+                    <div style="font-size: 32px; font-weight: bold; color: #2ecc71;">
+                        {{ dashboard_data.knowledge_overview.mastery_distribution.excellent }}
+                    </div>
+                    <div>Excellent</div>
+                </div>
+                <div>
+                    <div style="font-size: 32px; font-weight: bold; color: #27ae60;">
+                        {{ dashboard_data.knowledge_overview.mastery_distribution.good }}
+                    </div>
+                    <div>Good</div>
+                </div>
+                <div>
+                    <div style="font-size: 32px; font-weight: bold; color: #f39c12;">
+                        {{ dashboard_data.knowledge_overview.mastery_distribution.fair }}
+                    </div>
+                    <div>Fair</div>
+                </div>
+                <div>
+                    <div style="font-size: 32px; font-weight: bold; color: #e67e22;">
+                        {{ dashboard_data.knowledge_overview.mastery_distribution.poor }}
+                    </div>
+                    <div>Poor</div>
+                </div>
+                <div>
+                    <div style="font-size: 32px; font-weight: bold; color: #e74c3c;">
+                        {{ dashboard_data.knowledge_overview.mastery_distribution.critical }}
+                    </div>
+                    <div>Critical</div>
+                </div>
+            </div>
+            
+            <!-- Visual representation -->
+            <div class="progress-bar" style="height: 40px;">
+                {% set total = dashboard_data.knowledge_overview.total_topics %}
+                {% if total > 0 %}
+                    <div style="height: 100%; display: flex;">
+                        <div style="background: #2ecc71; width: {{ (dashboard_data.knowledge_overview.mastery_distribution.excellent / total * 100)|round }}%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                            {% if dashboard_data.knowledge_overview.mastery_distribution.excellent > 0 %}
+                                {{ "%.0f"|format(dashboard_data.knowledge_overview.mastery_distribution.excellent / total * 100) }}%
+                            {% endif %}
+                        </div>
+                        <div style="background: #27ae60; width: {{ (dashboard_data.knowledge_overview.mastery_distribution.good / total * 100)|round }}%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                            {% if dashboard_data.knowledge_overview.mastery_distribution.good > 0 %}
+                                {{ "%.0f"|format(dashboard_data.knowledge_overview.mastery_distribution.good / total * 100) }}%
+                            {% endif %}
+                        </div>
+                        <div style="background: #f39c12; width: {{ (dashboard_data.knowledge_overview.mastery_distribution.fair / total * 100)|round }}%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                            {% if dashboard_data.knowledge_overview.mastery_distribution.fair > 0 %}
+                                {{ "%.0f"|format(dashboard_data.knowledge_overview.mastery_distribution.fair / total * 100) }}%
+                            {% endif %}
+                        </div>
+                        <div style="background: #e67e22; width: {{ (dashboard_data.knowledge_overview.mastery_distribution.poor / total * 100)|round }}%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                            {% if dashboard_data.knowledge_overview.mastery_distribution.poor > 0 %}
+                                {{ "%.0f"|format(dashboard_data.knowledge_overview.mastery_distribution.poor / total * 100) }}%
+                            {% endif %}
+                        </div>
+                        <div style="background: #e74c3c; width: {{ (dashboard_data.knowledge_overview.mastery_distribution.critical / total * 100)|round }}%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                            {% if dashboard_data.knowledge_overview.mastery_distribution.critical > 0 %}
+                                {{ "%.0f"|format(dashboard_data.knowledge_overview.mastery_distribution.critical / total * 100) }}%
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Subject Performance -->
+        <h2>Performance by Subject</h2>
+        {% if subjects_stats %}
+            {% for subject in subjects_stats %}
+                <div class="subject-item">
+                    <div class="subject-info">
+                        <h3 style="margin-bottom: 5px;">{{ subject.subject }}</h3>
+                        <div style="color: #666; font-size: 14px;">
+                            {{ subject.topic_count }} topics
+                        </div>
+                        
+                        <div class="progress-bar" style="margin-top: 10px; height: 15px;">
+                            {% set readiness_class = 'progress-fill' if subject.avg_readiness >= 80 else 'progress-fill medium' if subject.avg_readiness >= 60 else 'progress-fill low' %}
+                            <div class="{{ readiness_class }}" style="width: {{ subject.avg_readiness }}%;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="subject-status">
+                        <div class="status-{{ subject.status }}" style="font-size: 20px; font-weight: bold;">
+                            {{ "%.0f"|format(subject.avg_readiness) }}%
+                        </div>
+                        <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                            {{ subject.status.replace('_', ' ').title() }}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="topic-card">
+                <p>No subject data available. Topics need to be assigned to subjects to see this breakdown.</p>
+            </div>
+        {% endif %}
+        
+        <!-- Recent Insights -->
+        <h2>Study Insights</h2>
+        <div class="insights-section">
+            <h3>Recent Trends</h3>
+            
+            {% set recent_reviews = dashboard_data.recent_activity.reviews_completed %}
+            {% set study_hours = dashboard_data.recent_activity.study_hours %}
+            
+            {% if recent_reviews == 0 %}
+                <div class="insight-item critical">
+                    <strong>No recent activity:</strong> You haven't completed any reviews this week. Consider starting with your most overdue topics.
+                </div>
+            {% elif recent_reviews < 10 %}
+                <div class="insight-item warning">
+                    <strong>Low activity:</strong> Only {{ recent_reviews }} reviews this week. Try to aim for at least 2-3 reviews per day for better retention.
+                </div>
+            {% else %}
+                <div class="insight-item">
+                    <strong>Good activity:</strong> {{ recent_reviews }} reviews completed this week. You're maintaining good momentum!
+                </div>
+            {% endif %}
+            
+            {% if study_hours < 2 %}
+                <div class="insight-item warning">
+                    <strong>Study time:</strong> Only {{ study_hours }} hours of focused study this week. Consider increasing daily study time.
+                </div>
+            {% elif study_hours > 20 %}
+                <div class="insight-item warning">
+                    <strong>High intensity:</strong> {{ study_hours }} hours of study this week. Make sure to take breaks to avoid burnout.
+                </div>
+            {% else %}
+                <div class="insight-item">
+                    <strong>Balanced approach:</strong> {{ study_hours }} hours of study this week shows good consistency.
+                </div>
+            {% endif %}
+            
+            {% if dashboard_data.recent_activity.current_streak >= 7 %}
+                <div class="insight-item">
+                    <strong>Excellent streak:</strong> {{ dashboard_data.recent_activity.current_streak }} days of consistent study. Keep it up!
+                </div>
+            {% elif dashboard_data.recent_activity.current_streak >= 3 %}
+                <div class="insight-item">
+                    <strong>Building momentum:</strong> {{ dashboard_data.recent_activity.current_streak }} day study streak. Try to extend it further.
+                </div>
+            {% elif dashboard_data.recent_activity.current_streak == 0 %}
+                <div class="insight-item critical">
+                    <strong>Streak broken:</strong> Start a new study streak today by reviewing just one topic.
+                </div>
+            {% endif %}
+            
+            {% if dashboard_data.due_for_review.count > 10 %}
+                <div class="insight-item critical">
+                    <strong>Review backlog:</strong> {{ dashboard_data.due_for_review.count }} topics are due for review. Focus on catching up.
+                </div>
+            {% elif dashboard_data.due_for_review.count > 5 %}
+                <div class="insight-item warning">
+                    <strong>Some topics due:</strong> {{ dashboard_data.due_for_review.count }} topics need review soon.
+                </div>
+            {% else %}
+                <div class="insight-item">
+                    <strong>On track:</strong> Only {{ dashboard_data.due_for_review.count }} topics due. Good schedule management!
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="sidebar">
+        <!-- Quick Actions -->
+        <div class="sidebar-box">
+            <h3>Quick Actions</h3>
+            <a href="{{ url_for('bp.dashboard') }}" class="btn btn-success" style="width: 100%; margin-bottom: 10px;">Start Studying</a>
+            <a href="{{ url_for('bp.topics_list') }}" class="btn" style="width: 100%; margin-bottom: 10px;">View All Topics</a>
+            <a href="{{ url_for('bp.exams_list') }}" class="btn" style="width: 100%;">Manage Exams</a>
+        </div>
+        
+        <!-- Upcoming Reviews -->
+        {% if dashboard_data.due_for_review.topics %}
+            <div class="sidebar-box">
+                <h3>Due for Review</h3>
+                {% for topic in dashboard_data.due_for_review.topics %}
+                    <div style="margin-bottom: 10px; padding: 8px; background: #fff; border: 1px solid #ddd;">
+                        <strong>{{ topic.name }}</strong>
+                        <div style="font-size: 12px; color: #666;">
+                            {{ topic.subject }} • {{ topic.overdue_by }} days overdue
+                        </div>
+                    </div>
+                {% endfor %}
+                
+                {% if dashboard_data.due_for_review.count > 5 %}
+                    <div style="text-align: center; margin-top: 10px;">
+                        <a href="{{ url_for('bp.topics_list') }}" class="btn btn-secondary">View All</a>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+        
+        <!-- Upcoming Exams -->
+        {% if dashboard_data.upcoming_exams.exams %}
+            <div class="sidebar-box">
+                <h3>Upcoming Exams</h3>
+                {% for exam in dashboard_data.upcoming_exams.exams %}
+                    <div style="margin-bottom: 10px; padding: 8px; background: #fff; border: 1px solid #ddd;">
+                        <strong>{{ exam.name }}</strong>
+                        <div style="font-size: 12px; color: #666;">
+                            {{ exam.date }} • {{ exam.days_left }} days left
+                        </div>
+                        <div style="font-size: 12px; color: #666;">
+                            {{ exam.readiness }} ready
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <!-- Study Goals -->
+        <div class="sidebar-box">
+            <h3>This Week's Goals</h3>
+            <div style="margin-bottom: 10px;">
+                <strong>Reviews Target: 20</strong>
+                <div class="progress-bar" style="height: 15px; margin-top: 5px;">
+                    {% set review_progress = (dashboard_data.recent_activity.reviews_completed / 20 * 100)|round %}
+                    <div class="progress-fill" style="width: {{ [100, review_progress] | min }}%;"></div>
+                </div>
+                <div style="font-size: 12px; color: #666;">
+                    {{ dashboard_data.recent_activity.reviews_completed }}/20 completed
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 10px;">
+                <strong>Study Time Target: 10h</strong>
+                <div class="progress-bar" style="height: 15px; margin-top: 5px;">
+                    {% set time_progress = (dashboard_data.recent_activity.study_hours / 10 * 100)|round %}
+                    <div class="progress-fill" style="width: {{ [100, time_progress] | min }}%;"></div>
+                </div>
+                <div style="font-size: 12px; color: #666;">
+                    {{ dashboard_data.recent_activity.study_hours }}/10 hours completed
+                </div>
+            </div>
+            
+            <div>
+                <strong>Streak Target: 7 days</strong>
+                <div class="progress-bar" style="height: 15px; margin-top: 5px;">
+                    {% set streak_progress = (dashboard_data.recent_activity.current_streak / 7 * 100)|round %}
+                    <div class="progress-fill" style="width: {{ [100, streak_progress] | min }}%;"></div>
+                </div>
+                <div style="font-size: 12px; color: #666;">
+                    {{ dashboard_data.recent_activity.current_streak }}/7 days
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

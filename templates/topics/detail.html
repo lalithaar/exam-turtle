@@ -1,0 +1,360 @@
+{% extends "base.html" %}
+
+{% block title %}{{ topic.name }} - Topics - Exam Turtle{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin: 20px 0;
+    }
+    
+    .stat-box {
+        border: 2px solid #000;
+        padding: 15px;
+        text-align: center;
+        background: #f9f9f9;
+    }
+    
+    .stat-value {
+        font-size: 24px;
+        font-weight: bold;
+        display: block;
+    }
+    
+    .stat-label {
+        font-size: 12px;
+        color: #666;
+        text-transform: uppercase;
+    }
+    
+    .confidence-range {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+    }
+    
+    .insights-box {
+        background: #f5f5f5;
+        border: 2px solid #ccc;
+        padding: 20px;
+        margin: 20px 0;
+    }
+    
+    .insight-item {
+        margin-bottom: 10px;
+        padding: 10px;
+        background: #fff;
+        border-left: 4px solid #2ecc71;
+    }
+    
+    .insight-item.warning {
+        border-left-color: #f39c12;
+    }
+    
+    .insight-item.critical {
+        border-left-color: #e74c3c;
+    }
+    
+    .review-item {
+        border-bottom: 1px solid #eee;
+        padding: 15px 0;
+    }
+    
+    .review-item:last-child {
+        border-bottom: none;
+    }
+    
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 5px;
+    }
+    
+    .review-performance {
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+    
+    .review-meta {
+        font-size: 12px;
+        color: #666;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h1>{{ topic.name }}</h1>
+    <a href="{{ url_for('bp.topics_list') }}" class="btn btn-secondary">← Back to Topics</a>
+</div>
+
+<div class="container">
+    <div class="main-content">
+        <!-- Topic Overview -->
+        <div style="background: #f9f9f9; border: 2px solid #000; padding: 20px; margin-bottom: 30px;">
+            <h2>Overview</h2>
+            <p><strong>Subject:</strong> {{ topic.subject or 'General' }}</p>
+            <p><strong>Mastery Level:</strong> {{ topic.mastery_level.title() }}</p>
+            <p><strong>Current Status:</strong> 
+                <span class="status-{{ strength_analysis.readiness_category }}">
+                    {{ strength_analysis.readiness_category.title() }}
+                </span>
+            </p>
+            {% if topic.description %}
+                <p><strong>Description:</strong> {{ topic.description }}</p>
+            {% endif %}
+        </div>
+        
+        <!-- Performance Statistics -->
+        <h2>Performance Statistics</h2>
+        <div class="stats-grid">
+            <div class="stat-box">
+                <span class="stat-value status-{{ strength_analysis.readiness_category }}">
+                    {{ "%.0f"|format(strength_analysis.exam_adjusted_retrievability * 100) }}%
+                </span>
+                <span class="stat-label">Current Strength</span>
+                <div class="confidence-range">
+                    Range: {{ "%.0f"|format(strength_analysis.confidence_interval.lower * 100) }}% - {{ "%.0f"|format(strength_analysis.confidence_interval.upper * 100) }}%
+                </div>
+            </div>
+            
+            <div class="stat-box">
+                <span class="stat-value">{{ study_stats.total_sessions }}</span>
+                <span class="stat-label">Total Reviews</span>
+                <div class="confidence-range">{{ "%.1f"|format(study_stats.success_rate) }}% success rate</div>
+            </div>
+            
+            <div class="stat-box">
+                <span class="stat-value">{{ topic.current_streak }}</span>
+                <span class="stat-label">Current Streak</span>
+                <div class="confidence-range">Best: {{ topic.best_streak }}</div>
+            </div>
+            
+            <div class="stat-box">
+                <span class="stat-value">{{ study_stats.total_study_time }}</span>
+                <span class="stat-label">Study Time</span>
+                <div class="confidence-range">{{ study_stats.average_session_time }} avg</div>
+            </div>
+            
+            <div class="stat-box">
+                <span class="stat-value">{{ progress_insights.next_review }}</span>
+                <span class="stat-label">Next Review</span>
+                <div class="confidence-range">
+                    {% if topic.last_reviewed_date %}
+                        Last: {{ topic.last_reviewed_date.strftime('%b %d') }}
+                    {% else %}
+                        Never reviewed
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="stat-box">
+                <span class="stat-value {{ 'status-excellent' if topic.recent_performance_trend == 'improving' else 'status-poor' if topic.recent_performance_trend == 'declining' else '' }}">
+                    {{ topic.recent_performance_trend.title() }}
+                </span>
+                <span class="stat-label">Trend</span>
+                <div class="confidence-range">Recent performance</div>
+            </div>
+        </div>
+        
+        <!-- Insights and Recommendations -->
+        <h2>Insights & Recommendations</h2>
+        <div class="insights-box">
+            <div class="insight-item">
+                <strong>Current Assessment:</strong> {{ progress_insights.study_recommendation }}
+            </div>
+            
+            {% for strength in progress_insights.strengths %}
+                <div class="insight-item">
+                    <strong>Strength:</strong> {{ strength }}
+                </div>
+            {% endfor %}
+            
+            {% for weakness in progress_insights.weak_areas %}
+                <div class="insight-item {{ 'warning' if 'declining' in weakness else 'critical' if 'retention' in weakness else '' }}">
+                    <strong>Area for improvement:</strong> {{ weakness }}
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Upcoming Exams -->
+        {% if upcoming_exams %}
+            <h2>Upcoming Exams</h2>
+            {% for exam_info in upcoming_exams %}
+                <div class="topic-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h3>{{ exam_info.exam.name }}</h3>
+                            <p>
+                                <strong>{{ exam_info.days_left }} days left</strong> - 
+                                {{ exam_info.exam.exam_date.strftime('%B %d, %Y') }}
+                            </p>
+                            {% if exam_info.expected_marks %}
+                                <p>Expected weightage: {{ exam_info.expected_marks }}% of exam</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <a href="{{ url_for('bp.exam_detail', exam_id=exam_info.exam.id) }}" class="btn">View Exam</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <!-- Review History -->
+        <h2>Recent Review History</h2>
+        {% if recent_reviews %}
+            <div style="border: 1px solid #ddd; padding: 20px;">
+                {% for review in recent_reviews %}
+                    <div class="review-item">
+                        <div class="review-header">
+                            <strong>{{ review.date }}</strong>
+                            <span class="review-performance">{{ review.performance }}</span>
+                        </div>
+                        
+                        <div class="review-meta">
+                            {% if review.retention_rate != "Not estimated" %}
+                                Retention: {{ review.retention_rate }} | 
+                            {% endif %}
+                            {% if review.time_spent != "Not recorded" %}
+                                Duration: {{ review.time_spent }} | 
+                            {% endif %}
+                            Speed: {{ review.response_speed }}
+                            {% if review.difficulty_felt != "Not rated" %}
+                                | Difficulty felt: {{ review.difficulty_felt }}
+                            {% endif %}
+                        </div>
+                        
+                        {% if review.notes != "No notes recorded" %}
+                            <div style="margin-top: 5px; font-style: italic; color: #666;">
+                                "{{ review.notes }}"
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                
+                <!-- Pagination for reviews -->
+                {% if reviews_pagination.pages > 1 %}
+                    <div class="pagination" style="margin-top: 20px;">
+                        {% if reviews_pagination.has_prev %}
+                            <a href="{{ url_for('bp.topic_detail', topic_id=topic.id, page=reviews_pagination.prev_num) }}">&laquo; Prev</a>
+                        {% endif %}
+                        
+                        {% for page_num in reviews_pagination.iter_pages() %}
+                            {% if page_num %}
+                                {% if page_num != reviews_pagination.page %}
+                                    <a href="{{ url_for('bp.topic_detail', topic_id=topic.id, page=page_num) }}">{{ page_num }}</a>
+                                {% else %}
+                                    <span class="current">{{ page_num }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span>...</span>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if reviews_pagination.has_next %}
+                            <a href="{{ url_for('bp.topic_detail', topic_id=topic.id, page=reviews_pagination.next_num) }}">Next &raquo;</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="topic-card">
+                <p>No review history yet. <a href="{{ url_for('bp.dashboard') }}">Log your first review</a> to start tracking progress!</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="sidebar">
+        <!-- Quick Actions -->
+        <div class="sidebar-box">
+            <h3>Quick Actions</h3>
+            <button class="btn btn-success" onclick="openModal('reviewModal')" style="width: 100%; margin-bottom: 10px;">Log Review</button>
+            <button class="btn" onclick="openModal('editTopicModal')" style="width: 100%; margin-bottom: 10px;">Edit Topic</button>
+            <button class="btn btn-danger" onclick="confirmDelete()" style="width: 100%;">Delete Topic</button>
+        </div>
+        
+        <!-- Algorithm Insights -->
+        <div class="sidebar-box">
+            <h3>Algorithm Insights</h3>
+            <p><strong>Stability:</strong> {{ "%.1f"|format(strength_analysis.stability_days) }} days</p>
+            <p><strong>Difficulty:</strong> {{ "%.1f"|format(strength_analysis.difficulty_score) }}/10</p>
+            <p><strong>Maturity:</strong> {{ "%.0f"|format(strength_analysis.maturity_score * 100) }}%</p>
+            <p><strong>Confidence:</strong> {{ "%.0f"|format(strength_analysis.prediction_confidence * 100) }}%</p>
+            
+            <div style="margin-top: 15px; font-size: 12px; color: #666;">
+                <p>{{ strength_analysis.state_description }}</p>
+                <p><strong>Improvement potential:</strong> {{ "%.0f"|format(strength_analysis.improvement_potential * 100) }}%</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Review Modal -->
+<div id="reviewModal" class="modal-overlay">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('reviewModal')">&times;</button>
+        <div class="modal-header">
+            <h3>Log Review: {{ topic.name }}</h3>
+        </div>
+        
+        <form method="POST" action="{{ url_for('bp.log_review') }}">
+            <input type="hidden" name="topic_id" value="{{ topic.id }}">
+            
+            <div class="form-group">
+                <label>How did you do?</label>
+                <div class="rating-buttons">
+                    <button type="button" class="rating-btn" onclick="selectRating(this, 2)">Again</button>
+                    <button type="button" class="rating-btn" onclick="selectRating(this, 3)">Hard</button>
+                    <button type="button" class="rating-btn" onclick="selectRating(this, 4)">Good</button>
+                    <button type="button" class="rating-btn" onclick="selectRating(this, 5)">Easy</button>
+                </div>
+                <input type="hidden" name="rating" required>
+            </div>
+            
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label for="retention">Retention %</label>
+                    <input type="number" name="retention_percentage" id="retention" 
+                           class="form-control" placeholder="Optional" min="0" max="100">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label for="duration">Duration (min)</label>
+                    <input type="number" name="duration_minutes" id="duration" 
+                           class="form-control" placeholder="Optional" min="1" max="180">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="notes">Notes</label>
+                <textarea name="notes" id="notes" class="form-control" rows="3" placeholder="Optional notes about this review session..."></textarea>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn btn-success" style="flex: 1;">Log Review</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('reviewModal')" style="flex: 1;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function confirmDelete() {
+        if (confirm('Are you sure you want to delete "{{ topic.name }}"? This will remove all review history and cannot be undone.')) {
+            // Create form and submit
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ url_for("delete_topic", topic_id=topic.id) }}';
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+</script>
+{% endblock %}

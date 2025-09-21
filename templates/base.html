@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Exam Turtle{% endblock %}</title>
+    <!-- import crimson text -->
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tahoma', 'Times New Roman', serif;
+
+        }
+
+        body {
+            font-family: 'Tahoma', 'Times New Roman', serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #fff;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            font-size: 1.1rem;
+        }
+
+
+        /* Navigation */
+        .nav {
+            border-bottom: 3px solid #000;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+        }
+
+        .nav ul {
+            list-style: none;
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #666;
+            font-size: 16px;
+            padding: 5px 0;
+            transition: color 0.2s;
+        }
+
+        .nav a:hover,
+        .nav a.active {
+            color: #000;
+            border-bottom: 2px solid #000;
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 48px;
+            font-weight: normal;
+            margin-bottom: 40px;
+            color: #000;
+            font-family: 'Crimson Text', serif;
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: normal;
+            margin-bottom: 20px;
+            color: #000;
+            font-family: 'Crimson Text', serif;
+        }
+
+        h3 {
+            font-size: 18px;
+            font-weight: normal;
+            margin-bottom: 15px;
+            color: #000;
+        }
+
+        p {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        /* Layout */
+        .container {
+            display: flex;
+            gap: 40px;
+            margin-top: 20px;
+        }
+
+        .main-content {
+            flex: 2;
+        }
+
+        .sidebar {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        /* Topic cards */
+        .topic-card {
+            border: 2px solid #000;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #fff;
+        }
+
+        .topic-card h3 {
+            margin-bottom: 10px;
+        }
+
+        .topic-meta {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .topic-meta span {
+            margin-right: 15px;
+        }
+
+        .retention-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 3px;
+            color: white;
+            margin-right: 10px;
+        }
+
+        .retention-high { background-color: #2ecc71; }
+        .retention-medium { background-color: #f39c12; }
+        .retention-low { background-color: #e74c3c; }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #000;
+            color: #fff;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background: #333;
+        }
+
+        .btn-secondary {
+            background: #666;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+        }
+
+        .btn-success {
+            background: #2ecc71;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ccc;
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #000;
+        }
+
+        select.form-control {
+            height: 42px;
+        }
+
+        /* Rating buttons */
+        .rating-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .rating-btn {
+            padding: 8px 16px;
+            border: 2px solid #ccc;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .rating-btn:hover {
+            border-color: #000;
+        }
+
+        .rating-btn.selected,
+        .rating-btn.active {
+            background: #000;
+            color: #fff;
+            border-color: #000;
+        }
+
+        /* Sidebar box */
+        .sidebar-box {
+            border: 2px solid #000;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #f9f9f9;
+        }
+
+        .sidebar-box h3 {
+            margin-bottom: 15px;
+        }
+
+        /* Exam display */
+        .exam-score {
+            font-size: 48px;
+            font-weight: bold;
+            color: #2ecc71;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .exam-details {
+            text-align: center;
+            color: #666;
+        }
+
+        /* Tables */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .table th {
+            background: #f5f5f5;
+            font-weight: bold;
+            border-bottom: 2px solid #000;
+        }
+
+        .table tr:hover {
+            background: #f9f9f9;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin: 20px 0;
+        }
+
+        .pagination a,
+        .pagination span {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .pagination a:hover,
+        .pagination .current {
+            background: #000;
+            color: #fff;
+            border-color: #000;
+        }
+
+        /* Flash messages */
+        .flash {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 2px solid;
+        }
+
+        .flash.success {
+            background: #d4edda;
+            border-color: #2ecc71;
+            color: #155724;
+        }
+
+        .flash.error {
+            background: #f8d7da;
+            border-color: #e74c3c;
+            color: #721c24;
+        }
+
+        .flash.warning {
+            background: #fff3cd;
+            border-color: #f39c12;
+            color: #856404;
+        }
+
+        /* Modal overlay */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            border: 3px solid #000;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        /* Filters */
+        .filters {
+            background: #f5f5f5;
+            border: 2px solid #000;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .filters h3 {
+            margin-bottom: 15px;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .filter-group {
+            flex: 1;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+        }
+
+        /* Status indicators */
+        .status-excellent { color: #2ecc71; font-weight: bold; }
+        .status-good { color: #27ae60; }
+        .status-fair { color: #f39c12; }
+        .status-poor { color: #e67e22; }
+        .status-critical { color: #e74c3c; font-weight: bold; }
+
+        /* Progress bars */
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #2ecc71;
+            transition: width 0.3s ease;
+        }
+
+        .progress-fill.low { background: #e74c3c; }
+        .progress-fill.medium { background: #f39c12; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .nav ul {
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+            
+            h1 {
+                font-size: 36px;
+            }
+            
+            .filter-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .rating-buttons {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="nav">
+        <ul>
+            <li><a href="{{ url_for('bp.dashboard') }}" {% if request.endpoint == 'dashboard' %}class="active"{% endif %}>Dashboard</a></li>
+            <li><a href="{{ url_for('bp.exams_list') }}" {% if request.endpoint.startswith('exams') %}class="active"{% endif %}>Exams</a></li>
+            <li><a href="{{ url_for('bp.topics_list') }}" {% if request.endpoint.startswith('topics') %}class="active"{% endif %}>Topics</a></li>
+            <li><a href="{{ url_for('bp.analytics') }}" {% if request.endpoint == 'analytics' %}class="active"{% endif %}>Analytics</a></li>
+            <li><a href="{{ url_for('about') }}" {% if request.endpoint == 'about' %}class="active"{% endif %}>About</a></li>
+        </ul>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+
+    <script>
+        // Modal functionality
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // Rating button selection
+        function selectRating(button, value) {
+            // Remove active class from all rating buttons in the same group
+            const group = button.closest('.rating-buttons');
+            group.querySelectorAll('.rating-btn').forEach(btn => btn.classList.remove('selected'));
+            
+            // Add active class to clicked button
+            button.classList.add('selected');
+            
+            // Update hidden input if exists
+            const hiddenInput = group.parentElement.querySelector('input[name="rating"]');
+            if (hiddenInput) {
+                hiddenInput.value = value;
+            }
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

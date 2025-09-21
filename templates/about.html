@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Exam Turtle</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Tahoma', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-weight: 300;
+            line-height: 1.7;
+            color: #1a1a1a;
+            background-color: #fafafa;
+            padding: 0;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px 40px;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-family: 'Crimson Text', serif;
+            font-size: 2.8rem;
+            font-weight: 400;
+            margin-bottom: 3rem;
+            letter-spacing: -0.02em;
+            color: #000;
+        }
+
+        h2 {
+            font-family: 'Crimson Text', serif;
+            font-size: 1.5rem;
+            font-weight: 400;
+            margin: 2.5rem 0 1rem 0;
+            color: #000;
+            letter-spacing: -0.01em;
+        }
+
+        p {
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        em {
+            font-style: italic;
+            color: #333;
+        }
+
+        .quote {
+            border-left: 3px solid #000;
+            padding-left: 1.5rem;
+            margin: 2rem 0;
+            font-style: italic;
+            color: #333;
+        }
+
+        .values {
+            background: white;
+            border: 1px solid #e5e5e5;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .values h3 {
+            font-family: 'Crimson Text', serif;
+            font-size: 1.2rem;
+            font-weight: 400;
+            margin-bottom: 1rem;
+            color: #000;
+        }
+
+        .values ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .values li {
+            padding: 0.3rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .values li:last-child {
+            border-bottom: none;
+        }
+
+        .tech-note {
+            background: #f9f9f9;
+            border: 1px solid #e5e5e5;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            font-size: 0.95rem;
+        }
+
+        nav {
+            margin-bottom: 2rem;
+        }
+
+        nav a {
+            color: #333;
+            text-decoration: none;
+            font-size: 0.95rem;
+            margin-right: 1.5rem;
+            transition: color 0.2s ease;
+        }
+
+        nav a:hover {
+            color: #000;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 40px 20px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            h2 {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="#">Dashboard</a>
+            <a href="#">Topics</a>
+            <a href="#">Exams</a>
+            <a href="{{ url_for('bp.about') }}">About</a>
+        </nav>
+
+        <h1>About Exam Turtle</h1>
+
+        <div class="quote">
+            "Slow and steady wins the race."
+        </div>
+
+        <p>
+            As much as we love cramming, turtles are the way to go for exams. Exam Turtle embodies the timeless wisdom of Aesop's fable—consistent, deliberate progress trumps frantic last-minute efforts every time.
+        </p>
+
+        <h2>The Philosophy</h2>
+
+        <p>
+            Learning isn't about intensity; it's about <em>consistency</em>. Your brain doesn't care how hard you studied yesterday—it cares about the patterns you build over time. Exam Turtle leverages this fundamental truth through spaced repetition, but unlike traditional flashcard systems, it works with <em>topics</em>.
+        </p>
+
+        <p>
+            Many subjects simply don't fit the flashcard format. Complex theories, mathematical proofs, essay topics, case studies—these require a different approach. That's where Exam Turtle shines. It applies the proven science of spaced repetition to any topic you're studying, regardless of format.
+        </p>
+
+        <h2>Learning With You</h2>
+
+        <p>
+            The app works better for you the more honest you are with it. When you review a topic and rate how well you understood it, you're not just logging progress—you're teaching the system about your learning patterns. The algorithm adapts to <em>your</em> memory, <em>your</em> strengths, and <em>your</em> challenges.
+        </p>
+
+        <p>
+            Honesty isn't about being harsh on yourself. It's about being <em>accurate</em>. Rate that economics concept as "Hard" if it was hard. Mark that physics problem as "Easy" if it clicked immediately. The algorithm uses this information to schedule your next review at the optimal time—not too soon to waste your time, not too late to let you forget.
+        </p>
+
+        <div class="values">
+            <h3>Our Values</h3>
+            <ul>
+                <li><strong>Honesty</strong> — Progress comes from accurate self-assessment</li>
+                <li><strong>Kindness</strong> — Learning should be encouraging, not punishing</li>
+                <li><strong>Simplicity</strong> — Complexity is the enemy of consistency</li>
+                <li><strong>Transparency</strong> — You deserve to understand how your learning works</li>
+                <li><strong>Sustainability</strong> — Small, consistent efforts over unsustainable bursts</li>
+            </ul>
+        </div>
+
+        <h2>How It Works</h2>
+
+        <p>
+            Exam Turtle uses the FSRS (Free Spaced Repetition Scheduler) algorithm—a modern, research-backed approach to spaced repetition. Unlike fixed intervals, FSRS adapts to your individual learning patterns, becoming more accurate the more you use it.
+        </p>
+
+        <p>
+            The system tracks your retention patterns and schedules reviews when you're most likely to forget—the optimal moment for reinforcement. This isn't just efficient; it's how memory actually works.
+        </p>
+
+        <h2>Open Source, Open Future</h2>
+
+        <p>
+            Exam Turtle is free and open source under GNU General Public License v3. This means the code is transparent, the algorithm is auditable, and the project will always remain free from commercial interests.
+        </p>
+
+        <p>
+            We believe learning tools shouldn't be locked behind paywalls or subject to the whims of venture capital. Education is a public good, and the tools that support it should be too.
+        </p>
+
+        <div class="tech-note">
+            <p><strong>For the technically curious:</strong> Exam Turtle implements the FSRS algorithm with topic-level granularity rather than card-level. This allows for more flexible study materials while maintaining the mathematical rigor of spaced repetition research. The system learns your individual retention patterns and optimizes review timing accordingly.</p>
+        </div>
+
+        <h2>Start Slow, Finish Strong</h2>
+
+        <p>
+            Like the turtle in the fable, Exam Turtle doesn't promise overnight success. What it offers is something better: a sustainable system that compounds your learning over time. 
+        </p>
+
+        <p>
+            Begin with just a few topics. Be honest about your understanding. Review consistently, not intensively. Trust the process.
+        </p>
+
+        <p>
+            The race isn't won by who studies hardest—it's won by who studies smartest.
+        </p>
+
+        <div class="quote">
+            Welcome to the turtle way.
+        </div>
+    </div>
+</body>
+</html>

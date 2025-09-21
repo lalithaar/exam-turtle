@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Exam Turtle{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="main-content">
+        <h1>Hello User,</h1>
+        
+        <h2>Top 3 topics to revise</h2>
+        
+        {% if top_topics %}
+            {% for item in top_topics %}
+                <div class="topic-card">
+                    <h3>{{ item.topic.name }}</h3>
+                    <div class="topic-meta">
+                        <span>{{ item.topic.subject or 'General' }}</span>
+                        {% if item.nearest_exam_days %}
+                            <span>{{ item.topic.exam_associations.first().exam.name }} - {{ item.nearest_exam_days }} days</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                        <div>
+                            {% set retention_class = 'retention-high' if item.retention_percentage >= 80 else 'retention-medium' if item.retention_percentage >= 60 else 'retention-low' %}
+                            <span class="retention-badge {{ retention_class }}">{{ item.retention_percentage }}% retention</span>
+                            {% if item.days_overdue > 0 %}
+                                <span style="color: #e74c3c; font-size: 12px;">{{ item.days_overdue }} days overdue</span>
+                            {% endif %}
+                        </div>
+                        <button class="btn" onclick="quickReview({{ item.topic.id }}, '{{ item.topic.name }}')">Quick Review</button>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="topic-card">
+                <p>No topics need reviewing right now. Great job!</p>
+                <a href="{{ url_for('bp.topics_list') }}" class="btn">View All Topics</a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="sidebar">
+        <div class="sidebar-box">
+            <h3>Log Review</h3>
+            
+            <form method="POST" action="{{ url_for('bp.log_review') }}" id="reviewForm">
+                <div class="form-group">
+                    <label for="topic">Topic:</label>
+                    <select name="topic_id" id="topic" class="form-control" required>
+                        <option value="">Select a topic</option>
+                        {% for topic in all_topics %}
+                            <option value="{{ topic.id }}">{{ topic.name }} - {{ topic.subject or 'General' }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>How was it?</label>
+                    <div class="rating-buttons">
+                        <button type="button" class="rating-btn" onclick="selectRating(this, 2)">Again</button>
+                        <button type="button" class="rating-btn" onclick="selectRating(this, 3)">Hard</button>
+                        <button type="button" class="rating-btn" onclick="selectRating(this, 4)">Good</button>
+                        <button type="button" class="rating-btn" onclick="selectRating(this, 5)">Easy</button>
+                    </div>
+                    <input type="hidden" name="rating" required>
+                </div>
+                
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="retention">Retention %</label>
+                        <input type="number" name="retention_percentage" id="retention" 
+                               class="form-control" placeholder="Optional" min="0" max="100">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label for="duration">Duration (min)</label>
+                        <input type="number" name="duration_minutes" id="duration" 
+                               class="form-control" placeholder="Optional" min="1" max="180">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-success" style="width: 100%;">Log Review</button>
+            </form>
+        </div>
+        
+        <div class="sidebar-box">
+            <h3>Closest Exam</h3>
+            
+            {% if closest_exam %}
+                <div class="exam-score">{{ "%.1f"|format(exam_readiness) }}%</div>
+                <div class="exam-details">
+                    <strong>{{ closest_exam.name }}</strong><br>
+                    {% set days_left = (closest_exam.exam_date - today).days %}
+                    {{ days_left }} days away<br>
+                    <small>{{ closest_exam.exam_date.strftime('%B %d, %Y') }}</small>
+                </div>
+                
+                <div style="margin-top: 15px;">
+                    <a href="{{ url_for('bp.exam_detail', exam_id=closest_exam.id) }}" class="btn" style="width: 100%;">View Details</a>
+                </div>
+            {% else %}
+                <p>No upcoming exams scheduled.</p>
+                <button class="btn" onclick="openModal('createExamModal')" style="width: 100%;">Create Exam</button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Quick Review Modal -->
+<div id="quickReviewModal" class="modal-overlay">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('quickReviewModal')">&times;</button>
+        <div class="modal-header">
+            <h3 id="quickReviewTitle">Quick Review</h3>
+        </div>
+        
+        <form method="POST" action="{{ url_for('bp.log_review') }}" id="quickReviewForm">
+            <input type="hidden" name="topic_id" id="quickTopicId">
+            
+            <div class="form-group">
+                <label>How did you do?</label>
+                <div class="rating-buttons">
+                    <button type="button" class="rating-btn" onclick="selectRating(this, 2)">Again</button>
+                    <button type="button" class="rating-btn" onclick="selectRating(this, 3)">Hard</button>
+                    <button type="button" class="rating-btn" onclick="selectRating(this, 4)">Good</button>
+                    <button type="button" class="rating-btn" onclick="selectRating(this, 5)">Easy</button>
+                </div>
+                <input type="hidden" name="rating" required>
+            </div>
+            
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label for="quickRetention">Retention %</label>
+                    <input type="number" name="retention_percentage" id="quickRetention" 
+                           class="form-control" placeholder="Optional" min="0" max="100">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label for="quickDuration">Duration (min)</label>
+                    <input type="number" name="duration_minutes" id="quickDuration" 
+                           class="form-control" placeholder="Optional" min="1" max="180">
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn btn-success" style="flex: 1;">Log Review</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('quickReviewModal')" style="flex: 1;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function quickReview(topicId, topicName) {
+        document.getElementById('quickTopicId').value = topicId;
+        document.getElementById('quickReviewTitle').textContent = 'Quick Review: ' + topicName;
+        
+        // Reset form
+        document.getElementById('quickReviewForm').reset();
+        document.querySelectorAll('#quickReviewModal .rating-btn').forEach(btn => 
+            btn.classList.remove('selected')
+        );
+        
+        openModal('quickReviewModal');
+    }
+    
+    // Form validation
+    document.getElementById('reviewForm').addEventListener('submit', function(e) {
+        const rating = document.querySelector('input[name="rating"]').value;
+        if (!rating) {
+            e.preventDefault();
+            alert('Please select a rating');
+        }
+    });
+    
+    document.getElementById('quickReviewForm').addEventListener('submit', function(e) {
+        const rating = this.querySelector('input[name="rating"]').value;
+        if (!rating) {
+            e.preventDefault();
+            alert('Please select a rating');
+        }
+    });
+</script>
+{% endblock %}

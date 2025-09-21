@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+
+{% block title %}{{ exam.name }} - Exams - Exam Turtle{% endblock %}
+
+{% block extra_css %}
+<style>
+    .prep-summary {
+        background: #f9f9f9;
+        border: 3px solid #000;
+        padding: 30px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .prep-score {
+        font-size: 72px;
+        font-weight: bold;
+        margin: 20px 0;
+    }
+    
+    .prep-score.excellent { color: #2ecc71; }
+    .prep-score.good { color: #27ae60; }
+    .prep-score.fair { color: #f39c12; }
+    .prep-score.poor { color: #e67e22; }
+    .prep-score.critical { color: #e74c3c; }
+    
+    .pie-chart {
+        width: 200px;
+        height: 200px;
+        margin: 20px auto;
+    }
+    
+    .readiness-legend {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 15px;
+        font-size: 12px;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .legend-color {
+        width: 12px;
+        height: 12px;
+        border: 1px solid #000;
+    }
+    
+    .topics-table {
+        border: 2px solid #000;
+        margin-bottom: 20px;
+    }
+    
+    .topic-row {
+        border-bottom: 1px solid #ddd;
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .topic-row:last-child {
+        border-bottom: none;
+    }
+    
+    .topic-row:nth-child(even) {
+        background: #f9f9f9;
+    }
+    
+    .topic-info {
+        flex: 1;
+    }
+    
+    .topic-readiness {
+        text-align: right;
+        min-width: 120px;
+    }
+    
+    .recommendations-box {
+        background: #fff3cd;
+        border: 2px solid #f39c12;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .recommendations-box.critical {
+        background: #f8d7da;
+        border-color: #e74c3c;
+    }
+    
+    .recommendations-box.excellent {
+        background: #d4edda;
+        border-color: #2ecc71;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h1>{{ exam.name }}</h1>
+    <a href="{{ url_for('bp.exams_list') }}" class="btn btn-secondary">← Back to Exams</a>
+</div>
+
+<!-- Exam Overview -->
+<div class="prep-summary">
+    {% set days_left = (exam.exam_date - today).days %}
+    <h2>
+        {% if days_left > 0 %}
+            {{ days_left }} days until exam
+        {% elif days_left == 0 %}
+            Exam is TODAY
+        {% else %}
+            Exam was {{ days_left|abs }} days ago
+        {% endif %}
+    </h2>
+    
+    <div class="prep-score {{ prep_summary.urgency_level }}">
+        {{ "%.0f"|format(prep_summary.overall_readiness) }}%
+    </div>
+    
+    <div style="font-size: 18px; margin-bottom: 20px;">
+        <strong>{{ prep_summary.status_message }}</strong>
+    </div>
+    
+    <div style="display: flex; justify-content: center; gap: 40px; margin-top: 20px;">
+        <div>
+            <div style="font-size: 24px; font-weight: bold;">{{ prep_summary.topics_ready }}</div>
+            <div style="color: #666;">Topics Ready</div>
+        </div>
+        <div>
+            <div style="font-size: 24px; font-weight: bold;">{{ prep_summary.total_topics }}</div>
+            <div style="color: #666;">Total Topics</div>
+        </div>
+        <div>
+            <div style="font-size: 24px; font-weight: bold;">{{ exam.exam_date.strftime('%b %d') }}</div>
+            <div style="color: #666;">Exam Date</div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="main-content">
+        <!-- Preparation Breakdown -->
+        <h2>Preparation Breakdown</h2>
+        
+        <!-- Simple ASCII pie chart representation -->
+        <div style="background: #f5f5f5; border: 2px solid #000; padding: 20px; margin-bottom: 20px;">
+            <h3 style="text-align: center; margin-bottom: 20px;">Topic Readiness Distribution</h3>
+            
+            <div style="display: flex; justify-content: space-around; text-align: center;">
+                <div>
+                    <div style="font-size: 24px; font-weight: bold; color: #2ecc71;">{{ readiness_distribution.excellent }}</div>
+                    <div style="font-size: 12px;">Excellent</div>
+                </div>
+                <div>
+                    <div style="font-size: 24px; font-weight: bold; color: #27ae60;">{{ readiness_distribution.good }}</div>
+                    <div style="font-size: 12px;">Good</div>
+                </div>
+                <div>
+                    <div style="font-size: 24px; font-weight: bold; color: #f39c12;">{{ readiness_distribution.fair }}</div>
+                    <div style="font-size: 12px;">Fair</div>
+                </div>
+                <div>
+                    <div style="font-size: 24px; font-weight: bold; color: #e67e22;">{{ readiness_distribution.poor }}</div>
+                    <div style="font-size: 12px;">Poor</div>
+                </div>
+                <div>
+                    <div style="font-size: 24px; font-weight: bold; color: #e74c3c;">{{ readiness_distribution.critical }}</div>
+                    <div style="font-size: 12px;">Critical</div>
+                </div>
+            </div>
+            
+            <!-- Visual bar representation -->
+            <div style="margin-top: 20px;">
+                <div class="progress-bar" style="height: 30px;">
+                    {% set total = prep_summary.total_topics %}
+                    {% if total > 0 %}
+                        <div style="height: 100%; display: flex;">
+                            <div style="background: #2ecc71; width: {{ (readiness_distribution.excellent / total * 100)|round }}%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold;">
+                                {% if readiness_distribution.excellent > 0 %}{{ readiness_distribution.excellent }}{% endif %}
+                            </div>
+                            <div style="background: #27ae60; width: {{ (readiness_distribution.good / total * 100)|round }}%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold;">
+                                {% if readiness_distribution.good > 0 %}{{ readiness_distribution.good }}{% endif %}
+                            </div>
+                            <div style="background: #f39c12; width: {{ (readiness_distribution.fair / total * 100)|round }}%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold;">
+                                {% if readiness_distribution.fair > 0 %}{{ readiness_distribution.fair }}{% endif %}
+                            </div>
+                            <div style="background: #e67e22; width: {{ (readiness_distribution.poor / total * 100)|round }}%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold;">
+                                {% if readiness_distribution.poor > 0 %}{{ readiness_distribution.poor }}{% endif %}
+                            </div>
+                            <div style="background: #e74c3c; width: {{ (readiness_distribution.critical / total * 100)|round }}%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold;">
+                                {% if readiness_distribution.critical > 0 %}{{ readiness_distribution.critical }}{% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Study Recommendations -->
+        {% set rec_class = 'excellent' if prep_summary.overall_readiness >= 85 else 'critical' if prep_summary.overall_readiness < 60 else '' %}
+        <div class="recommendations-box {{ rec_class }}">
+            <h3>Study Recommendations</h3>
+            {% if days_left > 0 %}
+                <p><strong>Daily study time needed:</strong> {{ prep_summary.study_recommendations.daily_hours_needed }} hours</p>
+                <p><strong>Total hours remaining:</strong> {{ prep_summary.study_recommendations.total_hours_remaining }} hours</p>
+            {% endif %}
+            
+            {% if prep_summary.study_recommendations.priority_topics %}
+                <p><strong>Priority topics to focus on:</strong></p>
+                <ul>
+                    {% for topic in prep_summary.study_recommendations.priority_topics %}
+                        <li>{{ topic }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            
+            {% if prep_summary.study_recommendations.focus_areas %}
+                <p><strong>Focus areas:</strong></p>
+                <ul>
+                    {% for area in prep_summary.study_recommendations.focus_areas %}
+                        <li>{{ area }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <!-- Topics List -->
+        <h2>Topics ({{ prep_summary.total_topics }} total)</h2>
+        <div class="topics-table">
+            {% for topic_info in topics_with_readiness %}
+                <div class="topic-row">
+                    <div class="topic-info">
+                        <strong>
+                            <a href="{{ url_for('bp.topic_detail', topic_id=topic_info.topic.id) }}" style="text-decoration: none; color: inherit;">
+                                {{ topic_info.topic.name }}
+                            </a>
+                        </strong>
+                        <div style="color: #666; font-size: 14px;">
+                            {{ topic_info.topic.subject or 'General' }} • 
+                            {{ topic_info.review_count }} reviews • 
+                            Last: {{ topic_info.last_reviewed }}
+                        </div>
+                        <div style="font-size: 12px; color: #999; margin-top: 5px;">
+                            Next review: {{ topic_info.next_review }}
+                        </div>
+                    </div>
+                    
+                    <div class="topic-readiness">
+                        <div class="status-{{ topic_info.readiness_category }}" style="font-size: 18px; font-weight: bold;">
+                            {{ "%.0f"|format(topic_info.readiness_score) }}%
+                        </div>
+                        <div style="font-size: 12px; color: #666;">
+                            {{ topic_info.readiness_category.title() }}
+                        </div>
+                        <div style="font-size: 10px; color: #999;">
+                            Range: {{ "%.0f"|format(topic_info.confidence_interval.lower * 100) }}-{{ "%.0f"|format(topic_info.confidence_interval.upper * 100) }}%
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination for topics -->
+        {% if pagination.total_pages > 1 %}
+            <div class="pagination">
+                {% if pagination.has_prev %}
+                    <a href="{{ url_for('bp.exam_detail', exam_id=exam.id, page=pagination.page-1) }}">&laquo; Prev</a>
+                {% endif %}
+                
+                {% for page_num in range(1, pagination.total_pages + 1) %}
+                    {% if page_num == pagination.page %}
+                        <span class="current">{{ page_num }}</span>
+                    {% elif page_num <= 3 or page_num > pagination.total_pages - 3 or (page_num >= pagination.page - 1 and page_num <= pagination.page + 1) %}
+                        <a href="{{ url_for('bp.exam_detail', exam_id=exam.id, page=page_num) }}">{{ page_num }}</a>
+                    {% elif page_num == 4 or page_num == pagination.total_pages - 3 %}
+                        <span>...</span>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if pagination.has_next %}
+                    <a href="{{ url_for('bp.exam_detail', exam_id=exam.id, page=pagination.page+1) }}">Next &raquo;</a>
+                {% endif %}
+            </div>
+        {% endif %}
+        
+        <!-- Recent Reviews -->
+        {% if recent_reviews %}
+            <h2>Recent Reviews</h2>
+            <div style="border: 1px solid #ddd;">
+                {% for review_info in recent_reviews[:10] %}
+                    <div style="padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>{{ review_info.topic_name }}</strong>
+                            <span style="margin-left: 15px;">{{ review_info.display.performance }}</span>
+                        </div>
+                        <div style="font-size: 12px; color: #666;">
+                            {{ review_info.display.date.split(' at ')[0] }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="sidebar">
+        <!-- Quick Stats -->
+        <div class="sidebar-box">
+            <h3>Quick Stats</h3>
+            <p><strong>Exam Date:</strong><br>{{ exam.exam_date.strftime('%B %d, %Y') }}</p>
+            
+            {% if exam.exam_type %}
+                <p><strong>Type:</strong><br>{{ exam.exam_type }}</p>
+            {% endif %}
+            
+            <p><strong>Importance:</strong><br>{{ exam.importance.title() }}</p>
+            
+            {% if days_left > 0 %}
+                <p><strong>Time Remaining:</strong><br>
+                    {% if days_left == 1 %}
+                        Tomorrow
+                    {% elif days_left < 7 %}
+                        {{ days_left }} days
+                    {% elif days_left < 30 %}
+                        {{ (days_left / 7)|round(1) }} weeks
+                    {% else %}
+                        {{ (days_left / 30)|round(1) }} months
+                    {% endif %}
+                </p>
+            {% endif %}
+            
+            <p><strong>Overall Readiness:</strong><br>
+                <span class="status-{{ prep_summary.urgency_level }}" style="font-size: 18px; font-weight: bold;">
+                    {{ "%.0f"|format(prep_summary.overall_readiness) }}%
+                </span>
+            </p>
+        </div>
+        
+        <!-- Actions -->
+        <div class="sidebar-box">
+            <h3>Actions</h3>
+            {% if days_left >= 0 %}
+                <a href="{{ url_for('bp.dashboard') }}" class="btn btn-success" style="width: 100%; margin-bottom: 10px;">Start Studying</a>
+            {% endif %}
+            
+            <button class="btn" onclick="openModal('editExamModal')" style="width: 100%; margin-bottom: 10px;">Edit Exam</button>
+            
+            {% if days_left < 0 %}
+                <button class="btn btn-danger" onclick="confirmDeleteExam()" style="width: 100%;">Delete Exam</button>
+            {% endif %}
+        </div>
+        
+        {% if prep_summary.study_recommendations.priority_topics %}
+            <!-- Priority Topics -->
+            <div class="sidebar-box">
+                <h3>Need Attention</h3>
+                {% for topic in prep_summary.study_recommendations.priority_topics[:5] %}
+                    <div style="margin-bottom: 8px; padding: 8px; background: #fff; border: 1px solid #ddd;">
+                        <strong>{{ topic }}</strong>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function confirmDeleteExam() {
+        if (confirm('Are you sure you want to delete "{{ exam.name }}"? This will remove all topic associations but won\'t delete the topics themselves.')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ url_for("bp.delete_exam", exam_id=exam.id) }}';
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+</script>
+{% endblock %}

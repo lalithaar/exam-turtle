@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Topics - Exam Turtle{% endblock %}
+
+{% block content %}
+<h1>Topics</h1>
+
+<!-- Filters -->
+<div class="filters">
+    <h3>Filter Topics</h3>
+    <form method="GET" action="{{ url_for('bp.topics_list') }}">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label for="search">Search</label>
+                <input type="text" name="search" id="search" value="{{ current_filters.search }}" placeholder="Topic name...">
+            </div>
+            
+            <div class="filter-group">
+                <label for="subject">Subject</label>
+                <select name="subject" id="subject">
+                    <option value="">All Subjects</option>
+                    {% for subject in subjects %}
+                        <option value="{{ subject }}" {% if current_filters.subject == subject %}selected{% endif %}>
+                            {{ subject }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="mastery">Mastery Level</label>
+                <select name="mastery" id="mastery">
+                    <option value="">All Levels</option>
+                    {% for level in mastery_levels %}
+                        <option value="{{ level }}" {% if current_filters.mastery == level %}selected{% endif %}>
+                            {{ level.title() }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="sort">Sort By</label>
+                <select name="sort" id="sort">
+                    <option value="priority" {% if current_filters.sort == 'priority' %}selected{% endif %}>Priority</option>
+                    <option value="name" {% if current_filters.sort == 'name' %}selected{% endif %}>Name</option>
+                    <option value="due_date" {% if current_filters.sort == 'due_date' %}selected{% endif %}>Due Date</option>
+                    <option value="subject" {% if current_filters.sort == 'subject' %}selected{% endif %}>Subject</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>&nbsp;</label>
+                <button type="submit" class="btn">Filter</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Add Topic Button -->
+<div style="margin-bottom: 20px;">
+    <button class="btn btn-success" onclick="openModal('createTopicModal')">Add New Topic</button>
+</div>
+
+<!-- Topics List -->
+{% if topics %}
+    {% for item in topics %}
+        <div class="topic-card">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div style="flex: 1;">
+                    <h3>
+                        <a href="{{ url_for('bp.topic_detail', topic_id=item.topic.id) }}" style="text-decoration: none; color: inherit;">
+                            {{ item.topic.name }}
+                        </a>
+                    </h3>
+                    
+                    <div class="topic-meta">
+                        <span><strong>{{ item.topic.subject or 'General' }}</strong></span>
+                        <span>{{ item.topic.mastery_level.title() }}</span>
+                        <span>{{ item.topic.total_reviews }} reviews</span>
+                        {% if item.topic.current_streak > 0 %}
+                            <span>{{ item.topic.current_streak }} streak</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div style="margin: 10px 0;">
+                        {% set readiness = item.strength.exam_adjusted_retrievability * 100 %}
+                        <span class="retention-badge {{ 'retention-high' if readiness >= 80 else 'retention-medium' if readiness >= 60 else 'retention-low' }}">
+                            {{ "%.0f"|format(readiness) }}% ready
+                        </span>
+                        
+                        <span class="status-{{ item.strength.readiness_category }}">
+                            {{ item.strength.readiness_category.title() }}
+                        </span>
+                        
+                        {% if item.is_overdue %}
+                            <span style="color: #e74c3c; font-weight: bold;">
+                                {{ item.days_until_due|abs }} days overdue
+                            </span>
+                        {% elif item.days_until_due <= 1 %}
+                            <span style="color: #f39c12; font-weight: bold;">Due today</span>
+                        {% elif item.days_until_due <= 7 %}
+                            <span style="color: #666;">Due in {{ item.days_until_due }} days</span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if item.topic.exam_associations.count() > 0 %}
+                        <div style="font-size: 12px; color: #666;">
+                            <strong>Exams:</strong>
+                            {% for assoc in item.topic.exam_associations.limit(2) %}
+                                {{ assoc.exam.name }}
+                                {% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                            {% if item.topic.exam_associations.count() > 2 %}
+                                and {{ item.topic.exam_associations.count() - 2 }} more
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div style="text-align: right;">
+                    <a href="{{ url_for('bp.topic_detail', topic_id=item.topic.id) }}" class="btn btn-secondary">View</a>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+    
+    <!-- Pagination -->
+    {% if pagination.total_pages > 1 %}
+        <div class="pagination">
+            {% if pagination.has_prev %}
+                <a href="{{ url_for('bp.topics_list', page=pagination.page-1, **current_filters) }}">&laquo; Prev</a>
+            {% endif %}
+            
+            {% for page_num in range(1, pagination.total_pages + 1) %}
+                {% if page_num == pagination.page %}
+                    <span class="current">{{ page_num }}</span>
+                {% elif page_num <= 3 or page_num > pagination.total_pages - 3 or (page_num >= pagination.page - 1 and page_num <= pagination.page + 1) %}
+                    <a href="{{ url_for('bp.topics_list', page=page_num, **current_filters) }}">{{ page_num }}</a>
+                {% elif page_num == 4 or page_num == pagination.total_pages - 3 %}
+                    <span>...</span>
+                {% endif %}
+            {% endfor %}
+            
+            {% if pagination.has_next %}
+                <a href="{{ url_for('bp.topics_list', page=pagination.page+1, **current_filters) }}">Next &raquo;</a>
+            {% endif %}
+        </div>
+        
+        <div style="text-align: center; color: #666; margin: 10px 0;">
+            Showing {{ ((pagination.page - 1) * pagination.per_page) + 1 }} - {{ pagination.page * pagination.per_page if pagination.page * pagination.per_page <= pagination.total else pagination.total }} of {{ pagination.total }} topics
+        </div>
+    {% endif %}
+    
+{% else %}
+    <div class="topic-card">
+        <h3>No Topics Found</h3>
+        <p>{% if current_filters.search or current_filters.subject or current_filters.mastery %}
+            No topics match your current filters. <a href="{{ url_for('bp.topics_list') }}">Clear filters</a> to see all topics.
+        {% else %}
+            You haven't created any topics yet. Start by adding your first topic!
+        {% endif %}</p>
+    </div>
+{% endif %}
+
+<!-- Create Topic Modal -->
+<div id="createTopicModal" class="modal-overlay">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('createTopicModal')">&times;</button>
+        <div class="modal-header">
+            <h3>Create New Topic</h3>
+        </div>
+        
+        <form method="POST" action="{{ url_for('bp.create_topic') }}">
+            <div class="form-group">
+                <label for="name">Topic Name *</label>
+                <input type="text" name="name" id="name" class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="subject">Subject</label>
+                <input type="text" name="subject" id="subject" class="form-control" 
+                       placeholder="e.g., Mathematics, Physics, Chemistry">
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea name="description" id="description" class="form-control" 
+                          rows="3" placeholder="Optional description..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="complexity_rating">Complexity (1-10)</label>
+                <input type="range" name="complexity_rating" id="complexity_rating" 
+                       min="1" max="10" value="5" class="form-control">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666;">
+                    <span>Simple</span>
+                    <span id="complexityValue">5</span>
+                    <span>Complex</span>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn btn-success" style="flex: 1;">Create Topic</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('createTopicModal')" style="flex: 1;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Update complexity rating display
+    document.getElementById('complexity_rating').addEventListener('input', function(e) {
+        document.getElementById('complexityValue').textContent = e.target.value;
+    });
+    
+    // Auto-submit filter form when selects change
+    document.querySelectorAll('#subject, #mastery, #sort').forEach(select => {
+        select.addEventListener('change', function() {
+            this.form.submit();
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Exams - Exam Turtle{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h1>Exams</h1>
+    <button class="btn btn-success" onclick="openModal('createExamModal')">Create New Exam</button>
+</div>
+
+<!-- Urgent Exams -->
+{% if categorized_exams.urgent %}
+    <h2 style="color: #e74c3c;">Urgent (≤ 7 days)</h2>
+    {% for exam_info in categorized_exams.urgent %}
+        <div class="topic-card" style="border-color: #e74c3c; border-width: 3px;">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div style="flex: 1;">
+                    <h3>{{ exam_info.exam.name }}</h3>
+                    <div class="topic-meta">
+                        <span><strong>{{ exam_info.exam.exam_date.strftime('%B %d, %Y') }}</strong></span>
+                        <span style="color: #e74c3c; font-weight: bold;">
+                            {% if exam_info.days_until == 0 %}
+                                TODAY
+                            {% elif exam_info.days_until == 1 %}
+                                TOMORROW
+                            {% else %}
+                                {{ exam_info.days_until }} DAYS LEFT
+                            {% endif %}
+                        </span>
+                        <span>{{ exam_info.prep_summary.total_topics }} topics</span>
+                    </div>
+                    
+                    {% if exam_info.exam.description %}
+                        <p style="margin: 10px 0; color: #666;">{{ exam_info.exam.description }}</p>
+                    {% endif %}
+                    
+                    <div style="margin: 15px 0;">
+                        <div class="progress-bar">
+                            {% set readiness_class = 'progress-fill' if exam_info.prep_summary.overall_readiness >= 70 else 'progress-fill medium' if exam_info.prep_summary.overall_readiness >= 50 else 'progress-fill low' %}
+                            <div class="{{ readiness_class }}" style="width: {{ exam_info.prep_summary.overall_readiness }}%"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666;">
+                            <span>{{ "%.0f"|format(exam_info.prep_summary.overall_readiness) }}% ready</span>
+                            <span>{{ exam_info.prep_summary.topics_ready }}/{{ exam_info.prep_summary.total_topics }} topics ready</span>
+                        </div>
+                    </div>
+                    
+                    <div style="font-size: 14px; color: #666;">
+                        <strong>Status:</strong> {{ exam_info.prep_summary.status_message }}
+                    </div>
+                </div>
+                
+                <div style="text-align: right;">
+                    <a href="{{ url_for('bp.exam_detail', exam_id=exam_info.exam.id) }}" class="btn">View Details</a>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Upcoming Exams -->
+{% if categorized_exams.upcoming %}
+    <h2 style="color: #f39c12;">Upcoming (8-30 days)</h2>
+    {% for exam_info in categorized_exams.upcoming %}
+        <div class="topic-card" style="border-color: #f39c12;">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div style="flex: 1;">
+                    <h3>{{ exam_info.exam.name }}</h3>
+                    <div class="topic-meta">
+                        <span>{{ exam_info.exam.exam_date.strftime('%B %d, %Y') }}</span>
+                        <span style="color: #f39c12; font-weight: bold;">{{ exam_info.days_until }} days</span>
+                        <span>{{ exam_info.prep_summary.total_topics }} topics</span>
+                        {% if exam_info.exam.exam_type %}
+                            <span>{{ exam_info.exam.exam_type.title() }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if exam_info.exam.description %}
+                        <p style="margin: 10px 0; color: #666;">{{ exam_info.exam.description }}</p>
+                    {% endif %}
+                    
+                    <div style="margin: 15px 0;">
+                        <div class="progress-bar">
+                            {% set readiness_class = 'progress-fill' if exam_info.prep_summary.overall_readiness >= 70 else 'progress-fill medium' if exam_info.prep_summary.overall_readiness >= 50 else 'progress-fill low' %}
+                            <div class="{{ readiness_class }}" style="width: {{ exam_info.prep_summary.overall_readiness }}%"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666;">
+                            <span>{{ "%.0f"|format(exam_info.prep_summary.overall_readiness) }}% ready</span>
+                            <span>{{ exam_info.prep_summary.topics_ready }}/{{ exam_info.prep_summary.total_topics }} topics ready</span>
+                        </div>
+                    </div>
+                    
+                    <div style="font-size: 14px;">
+                        <strong>Recommended daily hours:</strong> {{ exam_info.prep_summary.study_recommendations.daily_hours_needed }}h
+                    </div>
+                </div>
+                
+                <div style="text-align: right;">
+                    <a href="{{ url_for('bp.exam_detail', exam_id=exam_info.exam.id) }}" class="btn">View Details</a>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Future Exams -->
+{% if categorized_exams.future %}
+    <h2>Future (> 30 days)</h2>
+    {% for exam_info in categorized_exams.future %}
+        <div class="topic-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="flex: 1;">
+                    <h3>{{ exam_info.exam.name }}</h3>
+                    <div class="topic-meta">
+                        <span>{{ exam_info.exam.exam_date.strftime('%B %d, %Y') }}</span>
+                        <span>{{ exam_info.days_until }} days away</span>
+                        <span>{{ exam_info.prep_summary.total_topics }} topics</span>
+                        {% if exam_info.exam.exam_type %}
+                            <span>{{ exam_info.exam.exam_type.title() }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if exam_info.exam.description %}
+                        <p style="margin: 10px 0; color: #666;">{{ exam_info.exam.description }}</p>
+                    {% endif %}
+                </div>
+                
+                <div style="text-align: right;">
+                    <span style="font-size: 14px; color: #666; margin-right: 15px;">
+                        {{ "%.0f"|format(exam_info.prep_summary.overall_readiness) }}% ready
+                    </span>
+                    <a href="{{ url_for('bp.exam_detail', exam_id=exam_info.exam.id) }}" class="btn">View Details</a>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Completed Exams -->
+{% if categorized_exams.completed %}
+    <h2 style="color: #666;">Completed</h2>
+    {% for exam_info in categorized_exams.completed %}
+        <div class="topic-card" style="background: #f5f5f5; border-color: #ccc;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="flex: 1;">
+                    <h3 style="color: #666;">{{ exam_info.exam.name }}</h3>
+                    <div class="topic-meta">
+                        <span>{{ exam_info.exam.exam_date.strftime('%B %d, %Y') }}</span>
+                        <span>{{ exam_info.days_until|abs }} days ago</span>
+                        <span>{{ exam_info.prep_summary.total_topics }} topics</span>
+                    </div>
+                </div>
+                
+                <div style="text-align: right;">
+                    <button class="btn btn-danger" onclick="confirmDeleteExam({{ exam_info.exam.id }}, '{{ exam_info.exam.name }}')">Delete</button>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Empty State -->
+{% if not categorized_exams.urgent and not categorized_exams.upcoming and not categorized_exams.future and not categorized_exams.completed %}
+    <div class="topic-card">
+        <h3>No Exams Created</h3>
+        <p>You haven't created any exams yet. Create your first exam to start tracking your preparation progress!</p>
+        <button class="btn btn-success" onclick="openModal('createExamModal')">Create Your First Exam</button>
+    </div>
+{% endif %}
+
+<!-- Create Exam Modal -->
+<div id="createExamModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 600px;">
+        <button class="modal-close" onclick="closeModal('createExamModal')">&times;</button>
+        <div class="modal-header">
+            <h3>Create New Exam</h3>
+        </div>
+        
+        <form method="POST" action="{{ url_for('bp.create_exam') }}">
+            <div class="form-group">
+                <label for="exam_name">Exam Name *</label>
+                <input type="text" name="exam_name" id="exam_name" class="form-control" required>
+            </div>
+            
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label for="exam_date">Exam Date *</label>
+                    <input type="date" name="exam_date" id="exam_date" class="form-control" required>
+                </div>
+                
+                <div class="form-group" style="flex: 1;">
+                    <label for="importance">Importance</label>
+                    <select name="importance" id="importance" class="form-control">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                        <option value="critical">Critical</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="exam_type">Exam Type</label>
+                <input type="text" name="exam_type" id="exam_type" class="form-control" 
+                       placeholder="e.g., Final Exam, Midterm, Quiz, Certification">
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea name="description" id="description" class="form-control" 
+                          rows="3" placeholder="Optional description..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Select Topics *</label>
+                <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
+            <div class="form-group">
+                <label>Select Topics *</label>
+                <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
+                    {% for subject, topics in topics_by_subject.items() %}
+                        <div style="margin-bottom: 15px;">
+                            <strong style="display: block; margin-bottom: 5px; color: #333;">{{ subject }}</strong>
+                            {% for topic in topics %}
+                                <label style="display: block; margin-bottom: 3px; font-weight: normal;">
+                                    <input type="checkbox" name="topic_ids" value="{{ topic.id }}" style="margin-right: 8px;">
+                                    {{ topic.name }}
+                                    <span style="color: #666; font-size: 12px;">({{ topic.mastery_level.title() }})</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                    Select all topics that will be covered in this exam
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn btn-success" style="flex: 1;">Create Exam</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('createExamModal')" style="flex: 1;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function confirmDeleteExam(examId, examName) {
+        if (confirm(`Are you sure you want to delete "${examName}"? This will remove all associations with topics but won't delete the topics themselves.`)) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/exams/${examId}/delete`;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+    
+    // Set minimum date to today
+    document.getElementById('exam_date').min = new Date().toISOString().split('T')[0];
+    
+    // Select all topics in a subject
+    function toggleSubject(subjectName) {
+        const checkboxes = document.querySelectorAll(`input[name="topic_ids"][data-subject="${subjectName}"]`);
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        checkboxes.forEach(cb => cb.checked = !allChecked);
+    }
+</script>
+{% endblock %}
