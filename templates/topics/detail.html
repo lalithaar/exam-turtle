@@ -4,18 +4,19 @@
 
 {% block extra_css %}
 <style>
+    /* Responsive Grid for Stats */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Adjusted min-width for better fit */
         gap: 20px;
         margin: 20px 0;
     }
     
     .stat-box {
-        border: 2px solid #000;
+        border: 2px solid var(--border-color);
         padding: 15px;
         text-align: center;
-        background: #f9f9f9;
+        background: var(--card-bg);
     }
     
     .stat-value {
@@ -26,19 +27,20 @@
     
     .stat-label {
         font-size: 12px;
-        color: #666;
+        color: var(--nav-link-color);
         text-transform: uppercase;
     }
     
     .confidence-range {
         font-size: 12px;
-        color: #666;
+        color: var(--nav-link-color);
         margin-top: 5px;
     }
     
+    /* Insights and Recommendations */
     .insights-box {
-        background: #f5f5f5;
-        border: 2px solid #ccc;
+        background: var(--sidebar-bg);
+        border: 2px solid var(--border-color);
         padding: 20px;
         margin: 20px 0;
     }
@@ -46,21 +48,33 @@
     .insight-item {
         margin-bottom: 10px;
         padding: 10px;
-        background: #fff;
-        border-left: 4px solid #2ecc71;
+        background: var(--bg-color);
+        border-left: 4px solid #2ecc71; /* Green success bar */
     }
     
     .insight-item.warning {
-        border-left-color: #f39c12;
+        border-left-color: #f39c12; /* Amber warning bar */
     }
     
     .insight-item.critical {
-        border-left-color: #e74c3c;
+        border-left-color: #e74c3c; /* Red critical bar */
+    }
+    
+    /* Review History */
+    .review-history-container {
+        border: 1px solid var(--nav-link-color); /* Muted border */
+        padding: 20px;
+        background: var(--card-bg); /* Use card background */
     }
     
     .review-item {
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid var(--nav-link-color); /* Muted line for separation */
         padding: 15px 0;
+    }
+    
+    /* Dark Mode Override for Review Item Separator */
+    .parchment-mode .review-item {
+        border-bottom: 1px solid rgba(224, 217, 196, 0.2);
     }
     
     .review-item:last-child {
@@ -77,11 +91,35 @@
     .review-performance {
         font-size: 14px;
         margin-bottom: 5px;
+        color: var(--text-color);
     }
     
     .review-meta {
         font-size: 12px;
-        color: #666;
+        color: var(--nav-link-color);
+    }
+    
+    .review-item div[style] {
+        font-style: italic;
+        color: var(--nav-link-color) !important;
+    }
+    
+    /* Ensure topic card in main content also uses theme variables */
+    .main-content > div[style]:first-child {
+        background: var(--card-bg); 
+        border: 2px solid var(--border-color); 
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 600px) {
+        .stats-grid {
+            grid-template-columns: 1fr 1fr; /* 2 columns on small screens */
+        }
+        
+        .review-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
     }
 </style>
 {% endblock %}
@@ -94,8 +132,7 @@
 
 <div class="container">
     <div class="main-content">
-        <!-- Topic Overview -->
-        <div style="background: #f9f9f9; border: 2px solid #000; padding: 20px; margin-bottom: 30px;">
+        <div style="background: var(--card-bg); border: 2px solid var(--border-color); padding: 20px; margin-bottom: 30px;">
             <h2>Overview</h2>
             <p><strong>Subject:</strong> {{ topic.subject or 'General' }}</p>
             <p><strong>Mastery Level:</strong> {{ topic.mastery_level.title() }}</p>
@@ -109,7 +146,6 @@
             {% endif %}
         </div>
         
-        <!-- Performance Statistics -->
         <h2>Performance Statistics</h2>
         <div class="stats-grid">
             <div class="stat-box">
@@ -161,7 +197,6 @@
             </div>
         </div>
         
-        <!-- Insights and Recommendations -->
         <h2>Insights & Recommendations</h2>
         <div class="insights-box">
             <div class="insight-item">
@@ -181,7 +216,6 @@
             {% endfor %}
         </div>
         
-        <!-- Upcoming Exams -->
         {% if upcoming_exams %}
             <h2>Upcoming Exams</h2>
             {% for exam_info in upcoming_exams %}
@@ -205,10 +239,9 @@
             {% endfor %}
         {% endif %}
         
-        <!-- Review History -->
         <h2>Recent Review History</h2>
         {% if recent_reviews %}
-            <div style="border: 1px solid #ddd; padding: 20px;">
+            <div class="review-history-container">
                 {% for review in recent_reviews %}
                     <div class="review-item">
                         <div class="review-header">
@@ -230,14 +263,13 @@
                         </div>
                         
                         {% if review.notes != "No notes recorded" %}
-                            <div style="margin-top: 5px; font-style: italic; color: #666;">
+                            <div style="margin-top: 5px; font-style: italic; color: var(--nav-link-color);">
                                 "{{ review.notes }}"
                             </div>
                         {% endif %}
                     </div>
                 {% endfor %}
                 
-                <!-- Pagination for reviews -->
                 {% if reviews_pagination.pages > 1 %}
                     <div class="pagination" style="margin-top: 20px;">
                         {% if reviews_pagination.has_prev %}
@@ -270,7 +302,6 @@
     </div>
     
     <div class="sidebar">
-        <!-- Quick Actions -->
         <div class="sidebar-box">
             <h3>Quick Actions</h3>
             <button class="btn btn-success" onclick="openModal('reviewModal')" style="width: 100%; margin-bottom: 10px;">Log Review</button>
@@ -278,7 +309,6 @@
             <button class="btn btn-danger" onclick="confirmDelete()" style="width: 100%;">Delete Topic</button>
         </div>
         
-        <!-- Algorithm Insights -->
         <div class="sidebar-box">
             <h3>Algorithm Insights</h3>
             <p><strong>Stability:</strong> {{ "%.1f"|format(strength_analysis.stability_days) }} days</p>
@@ -286,7 +316,7 @@
             <p><strong>Maturity:</strong> {{ "%.0f"|format(strength_analysis.maturity_score * 100) }}%</p>
             <p><strong>Confidence:</strong> {{ "%.0f"|format(strength_analysis.prediction_confidence * 100) }}%</p>
             
-            <div style="margin-top: 15px; font-size: 12px; color: #666;">
+            <div style="margin-top: 15px; font-size: 12px; color: var(--nav-link-color);">
                 <p>{{ strength_analysis.state_description }}</p>
                 <p><strong>Improvement potential:</strong> {{ "%.0f"|format(strength_analysis.improvement_potential * 100) }}%</p>
             </div>
@@ -294,7 +324,6 @@
     </div>
 </div>
 
-<!-- Review Modal -->
 <div id="reviewModal" class="modal-overlay">
     <div class="modal-content">
         <button class="modal-close" onclick="closeModal('reviewModal')">&times;</button>
@@ -345,5 +374,16 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- add confirm delete later -->
+<script>
+    function confirmDelete() {
+        if (confirm('Are you sure you want to delete the topic "{{ topic.name }}"? This action cannot be undone.')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            // Assuming the Flask route for deletion is /topics/<int:topic_id>/delete
+            form.action = `/topics/{{ topic.id }}/delete`; 
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+</script>
 {% endblock %}

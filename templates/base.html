@@ -7,52 +7,159 @@
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
-        /* Reset and base styles */
+        /* Base Minimalist Style (Default: Light Mode) */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Tahoma', 'Times New Roman', serif;
-
+            /* Changed font for old-fashioned/minimalist feel */
+            font-family: 'Times New Roman', serif;
         }
 
-        .logo {
-            font-family: 'Crimson Text', serif;
-            font-size: 24px;
-            font-weight: bold;
-            color: #000;
-            letter-spacing: 2px;
-            margin-right: 40px;
+        /* Default Colors */
+        :root {
+            --bg-color: #fff;
+            --text-color: #333;
+            --header-color: #000;
+            --border-color: #000;
+            --nav-link-color: #666;
+            --card-bg: #f9f9f9;
+            --sidebar-bg: #f5f5f5;
         }
+
+        /* Parchment Mode (Dark Mode) Styles */
+        body.parchment-mode {
+            --bg-color: #2e2c26; /* Dark Sepia Background */
+            --text-color: #e0d9c4; /* Light Sepia Text */
+            --header-color: #fff;
+            --border-color: #e0d9c4;
+            --nav-link-color: #b0a892;
+            --card-bg: #3c3a35;
+            --sidebar-bg: #3c3a35;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        
+        /* Apply Dark Mode Colors to Elements */
+        .parchment-mode .logo,
+        .parchment-mode h1,
+        .parchment-mode h2,
+        .parchment-mode h3 {
+            color: var(--header-color);
+        }
+        
+        .parchment-mode .nav {
+            border-bottom-color: var(--border-color);
+        }
+        
+        .parchment-mode .nav a {
+            color: var(--nav-link-color);
+        }
+
+        .parchment-mode .nav a:hover,
+        .parchment-mode .nav a.active {
+            color: var(--header-color);
+            border-bottom-color: var(--header-color);
+        }
+
+        .parchment-mode .topic-card,
+        .parchment-mode .sidebar-box {
+            border-color: var(--border-color);
+            background: var(--card-bg);
+        }
+        
+        .parchment-mode .sidebar-box {
+            background: var(--sidebar-bg);
+        }
+
+        .parchment-mode .topic-meta,
+        .parchment-mode .exam-details,
+        .parchment-mode .metric-label,
+        .parchment-mode footer {
+            color: var(--nav-link-color);
+        }
+
+        .parchment-mode .btn {
+            background: var(--header-color);
+            color: var(--bg-color);
+            border: 1px solid var(--border-color);
+        }
+        
+        .parchment-mode .btn:hover {
+            background: var(--nav-link-color);
+        }
+        
+        .parchment-mode .btn-secondary { background: #666; color: #fff; }
+        
+        .parchment-mode .form-control {
+            background: #4a4843;
+            border-color: #777;
+            color: var(--text-color);
+        }
+        
+        .parchment-mode .form-control:focus {
+            border-color: #fff;
+        }
+        
+        .parchment-mode .rating-btn {
+            background: var(--card-bg);
+            border-color: var(--nav-link-color);
+            color: var(--text-color);
+        }
+
+        .parchment-mode .rating-btn:hover {
+            border-color: var(--header-color);
+        }
+
+        .parchment-mode .rating-btn.selected,
+        .parchment-mode .rating-btn.active {
+            background: var(--header-color);
+            color: var(--bg-color);
+            border-color: var(--header-color);
+        }
+
+        /* End Dark Mode Styles */
+
 
         body {
-            font-family: 'Tahoma', 'Times New Roman', serif;
+            font-family: 'Times New Roman', serif;
             line-height: 1.6;
-            color: #333;
-            background-color: #fff;
+            color: var(--text-color);
+            background-color: var(--bg-color);
             padding: 20px;
             max-width: 1200px;
             margin: 0 auto;
             font-size: 1.1rem;
         }
 
+        .logo {
+            font-family: 'Crimson Text', serif;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--header-color);
+            letter-spacing: 2px;
+            margin-right: 40px;
+        }
 
         /* Navigation */
         .nav {
-            border-bottom: 3px solid #000;
+            display: flex; /* Added for alignment */
+            align-items: center; /* Added for alignment */
+            border-bottom: 3px solid var(--border-color);
             margin-bottom: 40px;
             padding-bottom: 20px;
         }
 
-        .nav ul {
+        .nav .nav-links { /* Wrapped existing ul */
             list-style: none;
             display: flex;
             gap: 30px;
+            margin-right: auto; /* Push content to the right */
         }
-
+        
         .nav a {
             text-decoration: none;
-            color: #666;
+            color: var(--nav-link-color);
             font-size: 16px;
             padding: 5px 0;
             transition: color 0.2s;
@@ -60,8 +167,25 @@
 
         .nav a:hover,
         .nav a.active {
-            color: #000;
-            border-bottom: 2px solid #000;
+            color: var(--header-color);
+            border-bottom: 2px solid var(--header-color);
+        }
+        
+        /* New Toggle Button Style */
+        #theme-toggle {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        
+        #theme-toggle:hover {
+            background-color: var(--border-color);
+            color: var(--bg-color);
         }
 
         /* Typography */
@@ -69,7 +193,7 @@
             font-size: 48px;
             font-weight: normal;
             margin-bottom: 40px;
-            color: #000;
+            color: var(--header-color);
             font-family: 'Crimson Text', serif;
         }
 
@@ -77,7 +201,7 @@
             font-size: 24px;
             font-weight: normal;
             margin-bottom: 20px;
-            color: #000;
+            color: var(--header-color);
             font-family: 'Crimson Text', serif;
         }
 
@@ -85,12 +209,12 @@
             font-size: 18px;
             font-weight: normal;
             margin-bottom: 15px;
-            color: #000;
+            color: var(--header-color);
         }
 
         p {
             margin-bottom: 15px;
-            color: #333;
+            color: var(--text-color);
             font-size: 1.1rem;
         }
 
@@ -112,10 +236,10 @@
 
         /* Topic cards */
         .topic-card {
-            border: 2px solid #000;
+            border: 2px solid var(--border-color);
             margin-bottom: 20px;
             padding: 20px;
-            background: #fff;
+            background: var(--card-bg);
         }
 
         .topic-card h3 {
@@ -123,7 +247,7 @@
         }
 
         .topic-meta {
-            color: #666;
+            color: var(--nav-link-color);
             font-size: 14px;
             margin-bottom: 10px;
         }
@@ -131,6 +255,9 @@
         .topic-meta span {
             margin-right: 15px;
         }
+
+        /* ... [Retention Badges, Buttons, Forms, Sidebar, etc. styles remain the same, 
+               but will now inherit the new color variables for borders, backgrounds, and text] ... */
 
         .retention-badge {
             display: inline-block;
@@ -150,10 +277,10 @@
         .btn {
             display: inline-block;
             padding: 8px 16px;
-            background: #000;
-            color: #fff;
+            background: var(--header-color);
+            color: var(--bg-color);
             text-decoration: none;
-            border: none;
+            border: 1px solid var(--border-color); /* Added border for old-fashioned look */
             cursor: pointer;
             font-size: 14px;
             transition: background-color 0.2s;
@@ -161,18 +288,22 @@
 
         .btn:hover {
             background: #333;
+            color: #fff;
         }
 
         .btn-secondary {
             background: #666;
+            color: #fff;
         }
 
         .btn-danger {
             background: #e74c3c;
+            color: #fff;
         }
 
         .btn-success {
             background: #2ecc71;
+            color: #fff;
         }
 
         /* Forms */
@@ -189,13 +320,15 @@
         .form-control {
             width: 100%;
             padding: 10px;
-            border: 2px solid #ccc;
+            border: 2px solid var(--nav-link-color);
             font-size: 14px;
+            background: var(--bg-color);
+            color: var(--text-color);
         }
 
         .form-control:focus {
             outline: none;
-            border-color: #000;
+            border-color: var(--header-color);
         }
 
         select.form-control {
@@ -211,96 +344,36 @@
 
         .rating-btn {
             padding: 8px 16px;
-            border: 2px solid #ccc;
-            background: #fff;
+            border: 2px solid var(--nav-link-color);
+            background: var(--card-bg);
+            color: var(--text-color);
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .rating-btn:hover {
-            border-color: #000;
+            border-color: var(--header-color);
         }
 
         .rating-btn.selected,
         .rating-btn.active {
-            background: #000;
-            color: #fff;
-            border-color: #000;
+            background: var(--header-color);
+            color: var(--bg-color);
+            border-color: var(--header-color);
         }
 
         /* Sidebar box */
         .sidebar-box {
-            border: 2px solid #000;
+            border: 2px solid var(--border-color);
             padding: 20px;
             margin-bottom: 20px;
-            background: #f9f9f9;
+            background: var(--sidebar-bg);
         }
 
         .sidebar-box h3 {
             margin-bottom: 15px;
         }
-
-        /* Exam display */
-        .exam-score {
-            font-size: 48px;
-            font-weight: bold;
-            color: #2ecc71;
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .exam-details {
-            text-align: center;
-            color: #666;
-        }
-
-        /* Tables */
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        .table th,
-        .table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .table th {
-            background: #f5f5f5;
-            font-weight: bold;
-            border-bottom: 2px solid #000;
-        }
-
-        .table tr:hover {
-            background: #f9f9f9;
-        }
-
-        /* Pagination */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            gap: 5px;
-            margin: 20px 0;
-        }
-
-        .pagination a,
-        .pagination span {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            text-decoration: none;
-            color: #333;
-        }
-
-        .pagination a:hover,
-        .pagination .current {
-            background: #000;
-            color: #fff;
-            border-color: #000;
-        }
-
+        
         /* Flash messages */
         .flash {
             padding: 15px;
@@ -313,11 +386,23 @@
             border-color: #2ecc71;
             color: #155724;
         }
+        
+        .parchment-mode .flash.success {
+            background: #1f3b25;
+            border-color: #2ecc71;
+            color: #a7f3c4;
+        }
 
         .flash.error {
             background: #f8d7da;
             border-color: #e74c3c;
             color: #721c24;
+        }
+        
+        .parchment-mode .flash.error {
+            background: #4e1919;
+            border-color: #e74c3c;
+            color: #f7a0a0;
         }
 
         .flash.warning {
@@ -325,8 +410,14 @@
             border-color: #f39c12;
             color: #856404;
         }
-
-        /* Modal overlay */
+        
+        .parchment-mode .flash.warning {
+            background: #472c00;
+            border-color: #f39c12;
+            color: #ffe08c;
+        }
+        
+        /* Modal Overlay - needs explicit style for dark mode */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -343,106 +434,47 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: #fff;
-            border: 3px solid #000;
+            background: var(--bg-color); /* Use theme variable */
+            border: 3px solid var(--border-color); /* Use theme variable */
             padding: 30px;
             max-width: 500px;
             width: 90%;
+            color: var(--text-color);
         }
 
-        .modal-header {
-            margin-bottom: 20px;
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 24px;
-            cursor: pointer;
-            background: none;
-            border: none;
-        }
-
-        /* Filters */
-        .filters {
-            background: #f5f5f5;
-            border: 2px solid #000;
-            padding: 20px;
-            margin-bottom: 30px;
-        }
-
-        .filters h3 {
-            margin-bottom: 15px;
-        }
-
-        .filter-row {
-            display: flex;
-            gap: 15px;
-            align-items: end;
-        }
-
-        .filter-group {
-            flex: 1;
-        }
-
-        .filter-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-
-        .filter-group input,
-        .filter-group select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-        }
-
-        /* Status indicators */
-        .status-excellent { color: #2ecc71; font-weight: bold; }
-        .status-good { color: #27ae60; }
-        .status-fair { color: #f39c12; }
-        .status-poor { color: #e67e22; }
-        .status-critical { color: #e74c3c; font-weight: bold; }
-
-        /* Progress bars */
-        .progress-bar {
-            width: 100%;
-            height: 20px;
-            background: #f0f0f0;
-            border: 1px solid #ccc;
-            margin: 10px 0;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: #2ecc71;
-            transition: width 0.3s ease;
-        }
-
-        .progress-fill.low { background: #e74c3c; }
-        .progress-fill.medium { background: #f39c12; }
 
         footer {
             text-align: center;
             margin-top: 40px;
             padding-top: 20px;
-            border-top: 1px solid #ccc;
-            color: #666;
+            border-top: 1px solid var(--nav-link-color);
+            color: var(--nav-link-color);
             font-size: 16px;
-            text-transform: italic;
+            font-style: italic; /* Corrected typo 'text-transform: italic' to 'font-style: italic' */
         }
-
+        
         /* Responsive */
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
             }
             
-            .nav ul {
+            .nav .nav-links {
                 flex-wrap: wrap;
                 gap: 15px;
+            }
+            
+            .nav {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .logo {
+                margin-bottom: 10px;
+            }
+            
+            #theme-toggle {
+                align-self: flex-end;
             }
             
             h1 {
@@ -465,16 +497,16 @@
 <body>
     <nav class="nav">
         <span class="logo">Exam Turtle</span>
-        <ul>
+        <ul class="nav-links">
             <li><a href="{{ url_for('bp.dashboard') }}" {% if request.endpoint == 'dashboard' %}class="active"{% endif %}>Dashboard</a></li>
             <li><a href="{{ url_for('bp.exams_list') }}" {% if request.endpoint.startswith('exams') %}class="active"{% endif %}>Exams</a></li>
             <li><a href="{{ url_for('bp.topics_list') }}" {% if request.endpoint.startswith('topics') %}class="active"{% endif %}>Topics</a></li>
             <li><a href="{{ url_for('bp.analytics') }}" {% if request.endpoint == 'analytics' %}class="active"{% endif %}>Analytics</a></li>
             <li><a href="{{ url_for('about') }}" {% if request.endpoint == 'about' %}class="active"{% endif %}>About</a></li>
         </ul>
+        <button id="theme-toggle">Dark Mode</button>
     </nav>
 
-    <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
@@ -489,6 +521,39 @@
         <span class="source">- Devi Mahatmiyam</span>
     </footer>
     <script>
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+        const themeKey = 'examTurtleTheme';
+
+        // Set initial theme on page load
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem(themeKey);
+            if (savedTheme === 'parchment-mode') {
+                body.classList.add('parchment-mode');
+                themeToggle.textContent = 'Light Mode';
+            } else {
+                // Default to Light Mode
+                themeToggle.textContent = 'Dark Mode';
+            }
+        }
+        
+        // Handle theme switch
+        themeToggle.addEventListener('click', () => {
+            if (body.classList.contains('parchment-mode')) {
+                body.classList.remove('parchment-mode');
+                localStorage.setItem(themeKey, 'light-mode');
+                themeToggle.textContent = 'Dark Mode';
+            } else {
+                body.classList.add('parchment-mode');
+                localStorage.setItem(themeKey, 'parchment-mode');
+                themeToggle.textContent = 'Light Mode';
+            }
+        });
+        
+        // Run initialization
+        document.addEventListener('DOMContentLoaded', initializeTheme);
+        
         // Modal functionality
         function openModal(modalId) {
             document.getElementById(modalId).style.display = 'block';

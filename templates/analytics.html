@@ -12,10 +12,10 @@
     }
     
     .metric-card {
-        border: 2px solid #000;
+        border: 2px solid var(--border-color); /* Use theme variable */
         padding: 20px;
         text-align: center;
-        background: #f9f9f9;
+        background: var(--card-bg); /* Use theme variable */
     }
     
     .metric-value {
@@ -27,23 +27,23 @@
     
     .metric-label {
         font-size: 14px;
-        color: #666;
+        color: var(--nav-link-color); /* Use muted text color */
         text-transform: uppercase;
     }
     
     .chart-container {
-        border: 2px solid #000;
+        border: 2px solid var(--border-color); /* Use theme variable */
         padding: 20px;
         margin-bottom: 20px;
-        background: #fff;
+        background: var(--bg-color); /* Use theme variable for main content bg */
     }
     
     .week-bar {
         display: flex;
         align-items: end;
         height: 200px;
-        border-bottom: 2px solid #000;
-        border-left: 2px solid #000;
+        border-bottom: 2px solid var(--border-color); /* Use theme variable */
+        border-left: 2px solid var(--border-color); /* Use theme variable */
         padding: 10px;
         gap: 20px;
     }
@@ -71,6 +71,7 @@
         padding: 10px;
         font-size: 12px;
         text-align: center;
+        color: var(--text-color);
     }
     
     .bar-label {
@@ -78,12 +79,18 @@
     }
     
     .subject-item {
-        border: 1px solid #ddd;
+        border: 1px solid var(--nav-link-color); /* Use muted border */
         padding: 15px;
         margin-bottom: 10px;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        background: var(--card-bg); /* Use theme variable */
+    }
+    
+    /* Dark mode override for subject item border to be more subtle */
+    .parchment-mode .subject-item {
+        border: 1px solid rgba(224, 217, 196, 0.2);
     }
     
     .subject-info {
@@ -95,9 +102,10 @@
         min-width: 100px;
     }
     
+    /* Insights Section */
     .insights-section {
-        background: #f5f5f5;
-        border: 2px solid #000;
+        background: var(--sidebar-bg); /* Use theme variable */
+        border: 2px solid var(--border-color);
         padding: 20px;
         margin-bottom: 20px;
     }
@@ -105,19 +113,24 @@
     .insight-item {
         margin-bottom: 15px;
         padding: 10px;
-        background: #fff;
+        background: var(--bg-color); /* Use theme variable */
         border-left: 4px solid #2ecc71;
     }
     
     .insight-item.warning { border-left-color: #f39c12; }
     .insight-item.critical { border-left-color: #e74c3c; }
+
+    /* Dark Mode Overrides for Insights */
+    .parchment-mode .insight-item {
+        background: #4a4843; /* Slightly darker than card-bg for contrast */
+    }
+    
 </style>
 {% endblock %}
 
 {% block content %}
 <h1>Learning Analytics</h1>
 
-<!-- Quick Metrics -->
 <div class="analytics-grid">
     <div class="metric-card">
         <span class="metric-value">{{ dashboard_data.recent_activity.reviews_completed }}</span>
@@ -152,7 +165,6 @@
 
 <div class="container">
     <div class="main-content">
-        <!-- Weekly Progress Chart -->
         <div class="chart-container">
             <h2>Weekly Progress (Last 4 Weeks)</h2>
             
@@ -178,7 +190,6 @@
             </div>
         </div>
         
-        <!-- Knowledge Overview -->
         <div class="chart-container">
             <h2>Knowledge Distribution</h2>
             
@@ -215,33 +226,32 @@
                 </div>
             </div>
             
-            <!-- Visual representation -->
             <div class="progress-bar" style="height: 40px;">
                 {% set total = dashboard_data.knowledge_overview.total_topics %}
                 {% if total > 0 %}
                     <div style="height: 100%; display: flex;">
                         <div style="background: #2ecc71; width: {{ (dashboard_data.knowledge_overview.mastery_distribution.excellent / total * 100)|round }}%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
-                            {% if dashboard_data.knowledge_overview.mastery_distribution.excellent > 0 %}
+                            {% if (dashboard_data.knowledge_overview.mastery_distribution.excellent / total * 100)|round >= 10 %}
                                 {{ "%.0f"|format(dashboard_data.knowledge_overview.mastery_distribution.excellent / total * 100) }}%
                             {% endif %}
                         </div>
                         <div style="background: #27ae60; width: {{ (dashboard_data.knowledge_overview.mastery_distribution.good / total * 100)|round }}%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
-                            {% if dashboard_data.knowledge_overview.mastery_distribution.good > 0 %}
+                            {% if (dashboard_data.knowledge_overview.mastery_distribution.good / total * 100)|round >= 10 %}
                                 {{ "%.0f"|format(dashboard_data.knowledge_overview.mastery_distribution.good / total * 100) }}%
                             {% endif %}
                         </div>
                         <div style="background: #f39c12; width: {{ (dashboard_data.knowledge_overview.mastery_distribution.fair / total * 100)|round }}%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
-                            {% if dashboard_data.knowledge_overview.mastery_distribution.fair > 0 %}
+                            {% if (dashboard_data.knowledge_overview.mastery_distribution.fair / total * 100)|round >= 10 %}
                                 {{ "%.0f"|format(dashboard_data.knowledge_overview.mastery_distribution.fair / total * 100) }}%
                             {% endif %}
                         </div>
                         <div style="background: #e67e22; width: {{ (dashboard_data.knowledge_overview.mastery_distribution.poor / total * 100)|round }}%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
-                            {% if dashboard_data.knowledge_overview.mastery_distribution.poor > 0 %}
+                            {% if (dashboard_data.knowledge_overview.mastery_distribution.poor / total * 100)|round >= 10 %}
                                 {{ "%.0f"|format(dashboard_data.knowledge_overview.mastery_distribution.poor / total * 100) }}%
                             {% endif %}
                         </div>
                         <div style="background: #e74c3c; width: {{ (dashboard_data.knowledge_overview.mastery_distribution.critical / total * 100)|round }}%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
-                            {% if dashboard_data.knowledge_overview.mastery_distribution.critical > 0 %}
+                            {% if (dashboard_data.knowledge_overview.mastery_distribution.critical / total * 100)|round >= 10 %}
                                 {{ "%.0f"|format(dashboard_data.knowledge_overview.mastery_distribution.critical / total * 100) }}%
                             {% endif %}
                         </div>
@@ -250,14 +260,13 @@
             </div>
         </div>
         
-        <!-- Subject Performance -->
         <h2>Performance by Subject</h2>
         {% if subjects_stats %}
             {% for subject in subjects_stats %}
                 <div class="subject-item">
                     <div class="subject-info">
                         <h3 style="margin-bottom: 5px;">{{ subject.subject }}</h3>
-                        <div style="color: #666; font-size: 14px;">
+                        <div style="color: var(--nav-link-color); font-size: 14px;">
                             {{ subject.topic_count }} topics
                         </div>
                         
@@ -271,7 +280,7 @@
                         <div class="status-{{ subject.status }}" style="font-size: 20px; font-weight: bold;">
                             {{ "%.0f"|format(subject.avg_readiness) }}%
                         </div>
-                        <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                        <div style="font-size: 12px; color: var(--nav-link-color); margin-top: 5px;">
                             {{ subject.status.replace('_', ' ').title() }}
                         </div>
                     </div>
@@ -283,7 +292,6 @@
             </div>
         {% endif %}
         
-        <!-- Recent Insights -->
         <h2>Study Insights</h2>
         <div class="insights-section">
             <h3>Recent Trends</h3>
@@ -350,7 +358,6 @@
     </div>
     
     <div class="sidebar">
-        <!-- Quick Actions -->
         <div class="sidebar-box">
             <h3>Quick Actions</h3>
             <a href="{{ url_for('bp.dashboard') }}" class="btn btn-success" style="width: 100%; margin-bottom: 10px;">Start Studying</a>
@@ -358,14 +365,13 @@
             <a href="{{ url_for('bp.exams_list') }}" class="btn" style="width: 100%;">Manage Exams</a>
         </div>
         
-        <!-- Upcoming Reviews -->
         {% if dashboard_data.due_for_review.topics %}
             <div class="sidebar-box">
                 <h3>Due for Review</h3>
                 {% for topic in dashboard_data.due_for_review.topics %}
-                    <div style="margin-bottom: 10px; padding: 8px; background: #fff; border: 1px solid #ddd;">
+                    <div style="margin-bottom: 10px; padding: 8px; background: var(--bg-color); border: 1px solid var(--nav-link-color);">
                         <strong>{{ topic.name }}</strong>
-                        <div style="font-size: 12px; color: #666;">
+                        <div style="font-size: 12px; color: var(--nav-link-color);">
                             {{ topic.subject }} • {{ topic.overdue_by }} days overdue
                         </div>
                     </div>
@@ -379,17 +385,16 @@
             </div>
         {% endif %}
         
-        <!-- Upcoming Exams -->
         {% if dashboard_data.upcoming_exams.exams %}
             <div class="sidebar-box">
                 <h3>Upcoming Exams</h3>
                 {% for exam in dashboard_data.upcoming_exams.exams %}
-                    <div style="margin-bottom: 10px; padding: 8px; background: #fff; border: 1px solid #ddd;">
+                    <div style="margin-bottom: 10px; padding: 8px; background: var(--bg-color); border: 1px solid var(--nav-link-color);">
                         <strong>{{ exam.name }}</strong>
-                        <div style="font-size: 12px; color: #666;">
+                        <div style="font-size: 12px; color: var(--nav-link-color);">
                             {{ exam.date }} • {{ exam.days_left }} days left
                         </div>
-                        <div style="font-size: 12px; color: #666;">
+                        <div style="font-size: 12px; color: var(--nav-link-color);">
                             {{ exam.readiness }} ready
                         </div>
                     </div>
@@ -397,7 +402,6 @@
             </div>
         {% endif %}
         
-        <!-- Study Goals -->
         <div class="sidebar-box">
             <h3>This Week's Goals</h3>
             <div style="margin-bottom: 10px;">
@@ -406,7 +410,7 @@
                     {% set review_progress = (dashboard_data.recent_activity.reviews_completed / 20 * 100)|round %}
                     <div class="progress-fill" style="width: {{ [100, review_progress] | min }}%;"></div>
                 </div>
-                <div style="font-size: 12px; color: #666;">
+                <div style="font-size: 12px; color: var(--nav-link-color);">
                     {{ dashboard_data.recent_activity.reviews_completed }}/20 completed
                 </div>
             </div>
@@ -417,7 +421,7 @@
                     {% set time_progress = (dashboard_data.recent_activity.study_hours / 10 * 100)|round %}
                     <div class="progress-fill" style="width: {{ [100, time_progress] | min }}%;"></div>
                 </div>
-                <div style="font-size: 12px; color: #666;">
+                <div style="font-size: 12px; color: var(--nav-link-color);">
                     {{ dashboard_data.recent_activity.study_hours }}/10 hours completed
                 </div>
             </div>
@@ -428,7 +432,7 @@
                     {% set streak_progress = (dashboard_data.recent_activity.current_streak / 7 * 100)|round %}
                     <div class="progress-fill" style="width: {{ [100, streak_progress] | min }}%;"></div>
                 </div>
-                <div style="font-size: 12px; color: #666;">
+                <div style="font-size: 12px; color: var(--nav-link-color);">
                     {{ dashboard_data.recent_activity.current_streak }}/7 days
                 </div>
             </div>

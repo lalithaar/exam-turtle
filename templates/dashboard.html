@@ -106,7 +106,6 @@
     </div>
 </div>
 
-<!-- Quick Review Modal -->
 <div id="quickReviewModal" class="modal-overlay">
     <div class="modal-content">
         <button class="modal-close" onclick="closeModal('quickReviewModal')">&times;</button>
@@ -168,7 +167,8 @@
     
     // Form validation
     document.getElementById('reviewForm').addEventListener('submit', function(e) {
-        const rating = document.querySelector('input[name="rating"]').value;
+        // Find the rating input within this form
+        const rating = this.querySelector('input[name="rating"]').value;
         if (!rating) {
             e.preventDefault();
             alert('Please select a rating');
@@ -176,6 +176,7 @@
     });
     
     document.getElementById('quickReviewForm').addEventListener('submit', function(e) {
+        // Find the rating input within this form
         const rating = this.querySelector('input[name="rating"]').value;
         if (!rating) {
             e.preventDefault();

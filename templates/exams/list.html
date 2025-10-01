@@ -8,7 +8,6 @@
     <button class="btn btn-success" onclick="openModal('createExamModal')">Create New Exam</button>
 </div>
 
-<!-- Urgent Exams -->
 {% if categorized_exams.urgent %}
     <h2 style="color: #e74c3c;">Urgent (≤ 7 days)</h2>
     {% for exam_info in categorized_exams.urgent %}
@@ -31,7 +30,7 @@
                     </div>
                     
                     {% if exam_info.exam.description %}
-                        <p style="margin: 10px 0; color: #666;">{{ exam_info.exam.description }}</p>
+                        <p style="margin: 10px 0; color: var(--nav-link-color);">{{ exam_info.exam.description }}</p>
                     {% endif %}
                     
                     <div style="margin: 15px 0;">
@@ -39,13 +38,13 @@
                             {% set readiness_class = 'progress-fill' if exam_info.prep_summary.overall_readiness >= 70 else 'progress-fill medium' if exam_info.prep_summary.overall_readiness >= 50 else 'progress-fill low' %}
                             <div class="{{ readiness_class }}" style="width: {{ exam_info.prep_summary.overall_readiness }}%"></div>
                         </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666;">
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--nav-link-color);">
                             <span>{{ "%.0f"|format(exam_info.prep_summary.overall_readiness) }}% ready</span>
                             <span>{{ exam_info.prep_summary.topics_ready }}/{{ exam_info.prep_summary.total_topics }} topics ready</span>
                         </div>
                     </div>
                     
-                    <div style="font-size: 14px; color: #666;">
+                    <div style="font-size: 14px; color: var(--nav-link-color);">
                         <strong>Status:</strong> {{ exam_info.prep_summary.status_message }}
                     </div>
                 </div>
@@ -58,7 +57,6 @@
     {% endfor %}
 {% endif %}
 
-<!-- Upcoming Exams -->
 {% if categorized_exams.upcoming %}
     <h2 style="color: #f39c12;">Upcoming (8-30 days)</h2>
     {% for exam_info in categorized_exams.upcoming %}
@@ -76,7 +74,7 @@
                     </div>
                     
                     {% if exam_info.exam.description %}
-                        <p style="margin: 10px 0; color: #666;">{{ exam_info.exam.description }}</p>
+                        <p style="margin: 10px 0; color: var(--nav-link-color);">{{ exam_info.exam.description }}</p>
                     {% endif %}
                     
                     <div style="margin: 15px 0;">
@@ -84,7 +82,7 @@
                             {% set readiness_class = 'progress-fill' if exam_info.prep_summary.overall_readiness >= 70 else 'progress-fill medium' if exam_info.prep_summary.overall_readiness >= 50 else 'progress-fill low' %}
                             <div class="{{ readiness_class }}" style="width: {{ exam_info.prep_summary.overall_readiness }}%"></div>
                         </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666;">
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--nav-link-color);">
                             <span>{{ "%.0f"|format(exam_info.prep_summary.overall_readiness) }}% ready</span>
                             <span>{{ exam_info.prep_summary.topics_ready }}/{{ exam_info.prep_summary.total_topics }} topics ready</span>
                         </div>
@@ -103,7 +101,6 @@
     {% endfor %}
 {% endif %}
 
-<!-- Future Exams -->
 {% if categorized_exams.future %}
     <h2>Future (> 30 days)</h2>
     {% for exam_info in categorized_exams.future %}
@@ -121,12 +118,12 @@
                     </div>
                     
                     {% if exam_info.exam.description %}
-                        <p style="margin: 10px 0; color: #666;">{{ exam_info.exam.description }}</p>
+                        <p style="margin: 10px 0; color: var(--nav-link-color);">{{ exam_info.exam.description }}</p>
                     {% endif %}
                 </div>
                 
                 <div style="text-align: right;">
-                    <span style="font-size: 14px; color: #666; margin-right: 15px;">
+                    <span style="font-size: 14px; color: var(--nav-link-color); margin-right: 15px;">
                         {{ "%.0f"|format(exam_info.prep_summary.overall_readiness) }}% ready
                     </span>
                     <a href="{{ url_for('bp.exam_detail', exam_id=exam_info.exam.id) }}" class="btn">View Details</a>
@@ -136,14 +133,13 @@
     {% endfor %}
 {% endif %}
 
-<!-- Completed Exams -->
 {% if categorized_exams.completed %}
-    <h2 style="color: #666;">Completed</h2>
+    <h2 style="color: var(--nav-link-color);">Completed</h2>
     {% for exam_info in categorized_exams.completed %}
-        <div class="topic-card" style="background: #f5f5f5; border-color: #ccc;">
+        <div class="topic-card" style="background: var(--sidebar-bg); border-color: var(--nav-link-color);">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div style="flex: 1;">
-                    <h3 style="color: #666;">{{ exam_info.exam.name }}</h3>
+                    <h3 style="color: var(--nav-link-color);">{{ exam_info.exam.name }}</h3>
                     <div class="topic-meta">
                         <span>{{ exam_info.exam.exam_date.strftime('%B %d, %Y') }}</span>
                         <span>{{ exam_info.days_until|abs }} days ago</span>
@@ -159,7 +155,6 @@
     {% endfor %}
 {% endif %}
 
-<!-- Empty State -->
 {% if not categorized_exams.urgent and not categorized_exams.upcoming and not categorized_exams.future and not categorized_exams.completed %}
     <div class="topic-card">
         <h3>No Exams Created</h3>
@@ -168,7 +163,6 @@
     </div>
 {% endif %}
 
-<!-- Create Exam Modal -->
 <div id="createExamModal" class="modal-overlay">
     <div class="modal-content" style="max-width: 600px;">
         <button class="modal-close" onclick="closeModal('createExamModal')">&times;</button>
@@ -213,24 +207,21 @@
             
             <div class="form-group">
                 <label>Select Topics *</label>
-                <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
-            <div class="form-group">
-                <label>Select Topics *</label>
-                <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
+                <div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--nav-link-color); padding: 10px;">
                     {% for subject, topics in topics_by_subject.items() %}
                         <div style="margin-bottom: 15px;">
-                            <strong style="display: block; margin-bottom: 5px; color: #333;">{{ subject }}</strong>
+                            <strong style="display: block; margin-bottom: 5px; color: var(--text-color);">{{ subject }}</strong>
                             {% for topic in topics %}
                                 <label style="display: block; margin-bottom: 3px; font-weight: normal;">
                                     <input type="checkbox" name="topic_ids" value="{{ topic.id }}" style="margin-right: 8px;">
                                     {{ topic.name }}
-                                    <span style="color: #666; font-size: 12px;">({{ topic.mastery_level.title() }})</span>
+                                    <span style="color: var(--nav-link-color); font-size: 12px;">({{ topic.mastery_level.title() }})</span>
                                 </label>
                             {% endfor %}
                         </div>
                     {% endfor %}
                 </div>
-                <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                <div style="font-size: 12px; color: var(--nav-link-color); margin-top: 5px;">
                     Select all topics that will be covered in this exam
                 </div>
             </div>
@@ -248,9 +239,11 @@
 {% block extra_js %}
 <script>
     function confirmDeleteExam(examId, examName) {
-        if (confirm(`Are you sure you want to delete "${examName}"? This will remove all associations with topics but won't delete the topics themselves.`)) {
+        if (confirm(`Are you sure you want to delete "${examName}"? This will remove all associations with topics but won\'t delete the topics themselves.`)) {
             const form = document.createElement('form');
             form.method = 'POST';
+            // Assuming the Flask route uses /exams/<int:exam_id>/delete
+            form.action = `{{ url_for('bp.exams_list') }}${examId}/delete`; // This line needs correction if the URL structure is different, but for now I'll use the relative path.
             form.action = `/exams/${examId}/delete`;
             document.body.appendChild(form);
             form.submit();
@@ -260,7 +253,7 @@
     // Set minimum date to today
     document.getElementById('exam_date').min = new Date().toISOString().split('T')[0];
     
-    // Select all topics in a subject
+    // Select all topics in a subject - Note: This function is present but not fully utilized in the template structure
     function toggleSubject(subjectName) {
         const checkboxes = document.querySelectorAll(`input[name="topic_ids"][data-subject="${subjectName}"]`);
         const allChecked = Array.from(checkboxes).every(cb => cb.checked);

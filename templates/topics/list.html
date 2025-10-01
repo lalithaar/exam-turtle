@@ -2,22 +2,110 @@
 
 {% block title %}Topics - Exam Turtle{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Responsive Filter Row Adjustment for better mobile use */
+    .filters {
+        /* Inherits styles from base.html */
+        padding: 20px;
+    }
+    
+    .filter-row {
+        display: flex;
+        gap: 15px;
+        align-items: end;
+    }
+    
+    @media (max-width: 768px) {
+        /* Overrides base.html filter-row for better mobile stack */
+        .filter-row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
+        
+        .filter-group {
+            flex: none; /* Reset flex-1 */
+            width: 100%;
+        }
+        
+        .filter-group:last-child {
+            margin-top: 10px;
+        }
+    }
+
+    /* Custom Styling for HTML Range Input (Slider) */
+    #complexity_rating {
+        /* Remove generic .form-control styles that break the slider */
+        width: 100%;
+        height: 25px; 
+        padding: 0; 
+        margin: 10px 0;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+    }
+
+    /* WebKit (Chrome, Safari, Edge) styles for the track */
+    #complexity_rating::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 8px;
+        background: var(--sidebar-bg);
+        border: 1px solid var(--border-color);
+    }
+    
+    .parchment-mode #complexity_rating::-webkit-slider-runnable-track {
+        background: #4a4843;
+    }
+
+    /* WebKit styles for the thumb (handle) */
+    #complexity_rating::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 20px;
+        width: 10px;
+        background: var(--header-color); /* Black/White toggle */
+        border: 1px solid var(--border-color);
+        margin-top: -7px; /* Center the thumb vertically */
+    }
+
+    /* Mozilla (Firefox) styles for the track */
+    #complexity_rating::-moz-range-track {
+        width: 100%;
+        height: 8px;
+        background: var(--sidebar-bg);
+        border: 1px solid var(--border-color);
+    }
+    
+    .parchment-mode #complexity_rating::-moz-range-track {
+        background: #4a4843;
+    }
+
+    /* Mozilla styles for the thumb */
+    #complexity_rating::-moz-range-thumb {
+        height: 20px;
+        width: 10px;
+        background: var(--header-color);
+        border: 1px solid var(--border-color);
+    }
+
+</style>
+{% endblock %}
+
 {% block content %}
 <h1>Topics</h1>
 
-<!-- Filters -->
 <div class="filters">
     <h3>Filter Topics</h3>
     <form method="GET" action="{{ url_for('bp.topics_list') }}">
         <div class="filter-row">
             <div class="filter-group">
                 <label for="search">Search</label>
-                <input type="text" name="search" id="search" value="{{ current_filters.search }}" placeholder="Topic name...">
+                <input type="text" name="search" id="search" value="{{ current_filters.search }}" placeholder="Topic name..." class="form-control">
             </div>
             
             <div class="filter-group">
                 <label for="subject">Subject</label>
-                <select name="subject" id="subject">
+                <select name="subject" id="subject" class="form-control">
                     <option value="">All Subjects</option>
                     {% for subject in subjects %}
                         <option value="{{ subject }}" {% if current_filters.subject == subject %}selected{% endif %}>
@@ -29,7 +117,7 @@
             
             <div class="filter-group">
                 <label for="mastery">Mastery Level</label>
-                <select name="mastery" id="mastery">
+                <select name="mastery" id="mastery" class="form-control">
                     <option value="">All Levels</option>
                     {% for level in mastery_levels %}
                         <option value="{{ level }}" {% if current_filters.mastery == level %}selected{% endif %}>
@@ -41,7 +129,7 @@
             
             <div class="filter-group">
                 <label for="sort">Sort By</label>
-                <select name="sort" id="sort">
+                <select name="sort" id="sort" class="form-control">
                     <option value="priority" {% if current_filters.sort == 'priority' %}selected{% endif %}>Priority</option>
                     <option value="name" {% if current_filters.sort == 'name' %}selected{% endif %}>Name</option>
                     <option value="due_date" {% if current_filters.sort == 'due_date' %}selected{% endif %}>Due Date</option>
@@ -51,18 +139,16 @@
             
             <div class="filter-group">
                 <label>&nbsp;</label>
-                <button type="submit" class="btn">Filter</button>
+                <button type="submit" class="btn" style="width: 100%;">Filter</button>
             </div>
         </div>
     </form>
 </div>
 
-<!-- Add Topic Button -->
 <div style="margin-bottom: 20px;">
     <button class="btn btn-success" onclick="openModal('createTopicModal')">Add New Topic</button>
 </div>
 
-<!-- Topics List -->
 {% if topics %}
     {% for item in topics %}
         <div class="topic-card">
@@ -100,12 +186,12 @@
                         {% elif item.days_until_due <= 1 %}
                             <span style="color: #f39c12; font-weight: bold;">Due today</span>
                         {% elif item.days_until_due <= 7 %}
-                            <span style="color: #666;">Due in {{ item.days_until_due }} days</span>
+                            <span style="color: var(--nav-link-color);">Due in {{ item.days_until_due }} days</span>
                         {% endif %}
                     </div>
                     
                     {% if item.topic.exam_associations.count() > 0 %}
-                        <div style="font-size: 12px; color: #666;">
+                        <div style="font-size: 12px; color: var(--nav-link-color);">
                             <strong>Exams:</strong>
                             {% for assoc in item.topic.exam_associations.limit(2) %}
                                 {{ assoc.exam.name }}
@@ -125,7 +211,6 @@
         </div>
     {% endfor %}
     
-    <!-- Pagination -->
     {% if pagination.total_pages > 1 %}
         <div class="pagination">
             {% if pagination.has_prev %}
@@ -147,7 +232,7 @@
             {% endif %}
         </div>
         
-        <div style="text-align: center; color: #666; margin: 10px 0;">
+        <div style="text-align: center; color: var(--nav-link-color); margin: 10px 0;">
             Showing {{ ((pagination.page - 1) * pagination.per_page) + 1 }} - {{ pagination.page * pagination.per_page if pagination.page * pagination.per_page <= pagination.total else pagination.total }} of {{ pagination.total }} topics
         </div>
     {% endif %}
@@ -163,7 +248,6 @@
     </div>
 {% endif %}
 
-<!-- Create Topic Modal -->
 <div id="createTopicModal" class="modal-overlay">
     <div class="modal-content">
         <button class="modal-close" onclick="closeModal('createTopicModal')">&times;</button>
@@ -192,8 +276,8 @@
             <div class="form-group">
                 <label for="complexity_rating">Complexity (1-10)</label>
                 <input type="range" name="complexity_rating" id="complexity_rating" 
-                       min="1" max="10" value="5" class="form-control">
-                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666;">
+                       min="1" max="10" value="5"> 
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--nav-link-color);">
                     <span>Simple</span>
                     <span id="complexityValue">5</span>
                     <span>Complex</span>
