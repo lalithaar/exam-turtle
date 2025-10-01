@@ -519,23 +519,23 @@ def exam_detail(exam_id):
                          today=get_today())
 
 
-@bp.route('/exams/<int:exam_id>/delete', methods=['POST'])
-def delete_exam(exam_id):
-    """Delete an exam and its associations"""
-    try:
-        exam = Exam.query.get_or_404(exam_id)
-        exam_name = exam.name
-        
-        db.session.delete(exam)
-        db.session.commit()
-        
-        flash(f'Exam "{exam_name}" deleted successfully', 'success')
-        
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error deleting exam: {str(e)}', 'error')
-    
-    return redirect(url_for('bp.exams_list'))
+@bp.route('/exams/<int:exam_id>/archive', methods=['POST'])
+def archive_exam(exam_id):
+    """Implement soft delete"""
+    pass
+
+@bp.route('/topics/<int:topic_id>/archive', methods=['POST'])
+def archive_topic(topic_id):
+    """Implement soft delete"""
+    pass
+
+@bp.route('/exams/<int:exam_id>/edit', methods=['POST'])
+def edit_exam(exam_id):
+    pass
+
+@bp.route('/topics/<int:topic_id>/edit', methods=['POST'])
+def edit_topic(topic_id):
+    pass
 
 
 # ============================================================================
