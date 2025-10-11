@@ -10,6 +10,13 @@ Learning isn't about grinding harder; it's about **caring for yourself** while b
 
 Unlike traditional flashcard systems, Exam Turtle works with **topics**—perfect for complex theories, mathematical proofs, essay topics, and case studies that simply don't fit the flashcard format.
 
+## How to run the app?
+```bash
+git clone https://github.com/lalithaar/exam-turtle
+cd exam-turtle
+python3 app.py
+```
+
 ## What Makes This Different
 
 **Topic-Based Learning:** Complex subjects require more than Q&A cards. Exam Turtle applies spaced repetition to any topic you're studying, regardless of format.
