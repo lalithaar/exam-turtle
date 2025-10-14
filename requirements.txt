@@ -6,5 +6,3 @@ Jinja2==3.1.6
 MarkupSafe==3.0.3
 pytz==2025.2
 SQLAlchemy==2.0.43
-typing_extensions==4.15.0
-Werkzeug==3.1.3
