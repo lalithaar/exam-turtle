@@ -1377,26 +1377,25 @@ class ComprehensiveTopicScheduler:
             return 1.0 + (complexity_score - 5.0) * 0.1
 
     def _calculate_maturity_score(self, memory: TopicMemory) -> float:
-        """Calculate how mature/consolidated the memory is"""
+        """Calculate how mature/consolidated the memory is (FIXED - less restrictive)"""
         factors = []
 
-        # Review count factor (more reviews = more mature)
-        review_factor = min(1.0, memory.review_count / 20.0)
-        factors.append(review_factor * 0.3)
+        # Review count factor (more reviews = more mature) - LESS RESTRICTIVE
+        review_factor = min(1.0, memory.review_count / 10.0)  # Was 20, now 10
+        factors.append(review_factor * 0.25)  # Reduced weight
 
-        # Streak factor (consistent success)
-        streak_factor = min(1.0, memory.streak / 8.0)
-        factors.append(streak_factor * 0.2)
+        # Streak factor (consistent success) - MORE IMPORTANT
+        streak_factor = min(1.0, memory.streak / 5.0)  # Was 8, now 5
+        factors.append(streak_factor * 0.35)  # Increased weight
 
         # Stability factor (longer intervals = more stable)
-        stability_factor = min(1.0, memory.stability / 90.0)  # 90 days = fully mature
-        factors.append(stability_factor * 0.3)
+        stability_factor = min(1.0, memory.stability / 30.0)  # Was 90, now 30 days
+        factors.append(stability_factor * 0.25)  # Reduced weight
 
-        # Time factor (older memories are more consolidated)
-        if memory.initial_learning_date:
-            days_learning = (datetime.now() - memory.initial_learning_date).days
-            time_factor = min(1.0, days_learning / 180.0)  # 6 months = mature
-            factors.append(time_factor * 0.2)
+        # Recent success rate - NEW FACTOR
+        if memory.recent_ratings:
+            success_rate = sum(1 for r in memory.recent_ratings if r >= Rating.GOOD) / len(memory.recent_ratings)
+            factors.append(success_rate * 0.15)
         else:
             factors.append(0.0)
 
@@ -1515,6 +1514,185 @@ class ComprehensiveTopicScheduler:
             if recommendations
             else "Continue regular review schedule"
         )
+
+
+    def calculate_realistic_topic_strength(
+        self,
+        memory: TopicMemory,
+        current_datetime: datetime = None,
+        exam_context: Dict = None,
+    ) -> Dict:
+        """Calculate comprehensive, realistic topic strength assessment"""
+        if current_datetime is None:
+            current_datetime = datetime.now()
+
+        # Base retrievability from FSRS
+        days_since_review = 0.0
+        if memory.last_review_date:
+            days_since_review = (
+                current_datetime - memory.last_review_date
+            ).total_seconds() / 86400
+
+        base_retrievability = self.fsrs_engine.calculate_retrievability(
+            memory.stability, days_since_review
+        )
+
+        if memory.review_count <= 3 or len(memory.recent_ratings) <= 2:
+            if memory.recent_ratings:
+                latest_rating = memory.recent_ratings[-1]
+                # Map ratings to more realistic retrievability caps
+                rating_caps = {
+                    Rating.BLACKOUT: 0.15,
+                    Rating.AGAIN: 0.35,
+                    Rating.HARD: 0.55,
+                    Rating.GOOD: 0.75,
+                    Rating.EASY: 0.85,
+                }
+                max_retrievability = rating_caps.get(latest_rating, 0.5)
+                base_retrievability = min(base_retrievability, max_retrievability)
+            else:
+                base_retrievability = 0.3
+
+        # Apply exam pressure adjustments if applicable
+        exam_adjusted_retrievability = base_retrievability
+        exam_stress_level = 0.0
+
+        if exam_context and memory.exam_dates:
+            nearest_exam_days = min(
+                (exam_date - current_datetime.date()).days
+                for exam_date in memory.exam_dates
+                if exam_date >= current_datetime.date()
+            )
+
+            if nearest_exam_days <= 30:
+                preparation_level = exam_context.get("overall_preparation", 0.7)
+                cramming_ratio = memory.cramming_sessions / max(1, memory.review_count)
+
+                exam_adjusted_retrievability = (
+                    self.exam_simulator.adjust_retrievability_for_exam_context(
+                        base_retrievability,
+                        nearest_exam_days,
+                        cramming_ratio,
+                        preparation_level,
+                    )
+                )
+
+                exam_stress_level = self.exam_simulator.calculate_exam_stress_level(
+                    nearest_exam_days, preparation_level
+                )
+
+        # Get confidence interval
+        confidence_interval = self.performance_validator.get_confidence_interval(
+            exam_adjusted_retrievability
+        )
+
+        # Calculate maturity score based on stability and review history
+        maturity_score = self._calculate_maturity_score(memory)
+        
+        # FIXED: Calculate performance momentum (recent success pattern)
+        performance_momentum = self._calculate_performance_momentum(memory)
+        
+        # FIXED: More realistic and performance-aware readiness calculation
+        readiness_category, readiness_score = self._determine_readiness_category(
+            exam_adjusted_retrievability, 
+            maturity_score, 
+            performance_momentum, 
+            memory
+        )
+
+        return {
+            "base_retrievability": round(base_retrievability, 3),
+            "exam_adjusted_retrievability": round(exam_adjusted_retrievability, 3),
+            "confidence_interval": {
+                "lower": round(confidence_interval[0], 3),
+                "upper": round(confidence_interval[1], 3),
+            },
+            "readiness_category": readiness_category,
+            "readiness_score": readiness_score,
+            "maturity_score": round(maturity_score, 3),
+            "performance_momentum": round(performance_momentum, 3),  # NEW
+            "exam_stress_level": round(exam_stress_level, 3),
+            "stability_days": round(memory.stability, 1),
+            "difficulty_score": round(memory.difficulty, 1),
+            "review_history_strength": self._calculate_review_history_strength(memory),
+            "prediction_confidence": self.performance_validator.calculate_prediction_confidence(
+                memory
+            ),
+            "days_since_last_review": (
+                round(days_since_review, 1) if days_since_review > 0 else 0
+            ),
+            "state_description": self._get_state_description(memory.state),
+            "improvement_potential": self._calculate_improvement_potential(memory),
+        }
+
+    def _calculate_performance_momentum(self, memory: TopicMemory) -> float:
+        """Calculate recent performance momentum (0.0 to 1.0)"""
+        if not memory.recent_ratings:
+            return 0.0
+        
+        recent_ratings = memory.recent_ratings[-5:]  # Last 5 reviews
+        
+        # Calculate average performance
+        avg_rating = statistics.mean([float(r) for r in recent_ratings])
+        performance_score = (avg_rating - 1.0) / 4.0  # Normalize to 0-1
+        
+        # Bonus for consecutive good/easy ratings
+        consecutive_good = 0
+        for rating in reversed(recent_ratings):
+            if rating >= Rating.GOOD:
+                consecutive_good += 1
+            else:
+                break
+        
+        consecutive_bonus = min(0.3, consecutive_good * 0.1)
+        
+        # Penalty for recent failures
+        recent_failures = sum(1 for r in recent_ratings if r <= Rating.AGAIN)
+        failure_penalty = recent_failures * 0.15
+        
+        # Current streak bonus
+        streak_bonus = min(0.2, memory.streak * 0.05)
+        
+        momentum = performance_score + consecutive_bonus + streak_bonus - failure_penalty
+        return max(0.0, min(1.0, momentum))
+
+    def _determine_readiness_category(
+        self, 
+        retrievability: float, 
+        maturity: float, 
+        momentum: float, 
+        memory: TopicMemory
+    ) -> Tuple[str, float]:
+        """Determine readiness category with more nuanced logic"""
+        
+        # FIXED: Much more realistic thresholds and momentum consideration
+        
+        # Excellent: High retrievability OR (good retrievability + strong momentum)
+        if (retrievability >= 0.75 and momentum >= 0.7) or \
+        (retrievability >= 0.80 and momentum >= 0.5) or \
+        (retrievability >= 0.85):
+            return "excellent", min(0.95, 0.80 + retrievability * 0.15)
+        
+        # Good: Decent retrievability with good momentum OR solid retrievability
+        elif (retrievability >= 0.65 and momentum >= 0.6) or \
+            (retrievability >= 0.70 and momentum >= 0.4) or \
+            (retrievability >= 0.75 and memory.streak >= 2):
+            return "good", min(0.85, 0.65 + retrievability * 0.2)
+        
+        # Fair: Moderate performance with some positive indicators
+        elif (retrievability >= 0.55 and momentum >= 0.5) or \
+            (retrievability >= 0.60 and memory.streak >= 1) or \
+            (retrievability >= 0.65):
+            return "fair", min(0.70, 0.45 + retrievability * 0.25)
+        
+        # Poor: Below average but not critical
+        elif retrievability >= 0.40 or \
+            (retrievability >= 0.35 and momentum >= 0.3):
+            return "poor", min(0.55, 0.25 + retrievability * 0.3)
+        
+        # Critical: Very low performance
+        else:
+            return "critical", max(0.10, retrievability * 0.5)
 
 
 # Usage example and testing functions
