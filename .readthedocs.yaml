@@ -23,4 +23,4 @@ mkdocs:
 
 python:
   install:
-    - requirements: rec-docs.txt
+    - requirements: req-docs.txt
