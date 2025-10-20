@@ -1,0 +1,249 @@
+html {
+  font-size: 16px; /* 1rem will equal 16px */
+}
+.md-typeset p, li, a {
+	font-size:1.35rem;
+}
+
+h1 {
+    font-size:3.1rem;}
+
+h2 {
+    font-size:2.1rem;}
+    
+h3 {
+    font-size:1.6rem;}
+
+root {
+      --md-primary-fg-color: #371722;
+      --md-primary-bg-color: #fcfbf8;
+}
+
+.md-ellipsis {
+    font-size:1.rem !important;
+}
+
+
+/* Font */
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond&display=swap");
+
+/* --- Settings for MkDocs Material --- */
+:root {
+  /* Your custom color palette */
+  --color-dark: #371722;
+  --color-light: #fcfbf8;
+  --color-primary: #6e6154;
+
+  /* Typographic scale variables (kept for easier maintenance) */
+  --size-step-0: clamp(1rem, calc(0.96rem + 0.22vw), 1.13rem);
+  --size-step-1: clamp(1.25rem, calc(1.16rem + 0.43vw), 1.5rem);
+  --size-step-2: clamp(1.56rem, calc(1.41rem + 0.76vw), 2rem);
+  --size-step-3: clamp(1.95rem, calc(1.71rem + 1.24vw), 2.66rem);
+  --size-step-4: clamp(2.44rem, calc(2.05rem + 1.93vw), 3.55rem);
+
+  /* Spacing and Alignment (generic/local variables) */
+  --spacing: 1.5rem;
+  --align: center;
+  --font-stack: "Cormorant Garamond", Georgia, Cambria, "Times New Roman", Times,
+    serif;
+
+  /* Material-specific variable overrides */
+  /* Colors */
+  --md-default-fg-color: var(--color-dark); /* Primary text color */
+  --md-default-bg-color: var(--color-light); /* Background color */
+  --md-primary-fg-color: var(--color-dark); /* Primary header/link color */
+  --md-accent-fg-color: var(--color-primary); /* Accent elements color */
+  --md-code-bg-color: rgba(0, 0, 0, 0.05); /* Lighter code background */
+  --md-code-fg-color: var(--color-dark); /* Code text color */
+
+  /* Typography */
+  --md-typeset-font: var(--font-stack); /* Body text font */
+  --md-code-font: monospace; /* Code font (using default for now) */
+}
+
+/* --- Global & Layout Styles --- */
+
+/* Base font size and background for the whole page */
+html {
+  font-size: 16px; /* Base font size */
+  background: var(--md-default-bg-color);
+}
+
+
+/* General Link Styling */
+a {
+  color: var(--md-default-fg-color);
+  text-decoration-color: var(--md-primary-fg-color);
+  text-decoration-thickness: 0.1ex;
+  text-underline-offset: 0.3ex;
+}
+a:hover {
+  text-decoration-thickness: 0.2ex;
+}
+
+.md-typeset a {
+      text-decoration:underline;
+}
+/* Image Styling */
+img {
+  display: block;
+  max-width: 100%;
+  margin: 0 auto;
+  height: auto;
+  /* Applying your unique filter effect */
+  filter: sepia(80%) grayscale(0.8) contrast(1) opacity(0.8);
+  mix-blend-mode: multiply;
+}
+
+/* --- Typography and Headings --- */
+
+/* Applying the custom font and body text size to the main content area */
+.md-typeset {
+  font-family: var(--font-stack);
+  font-size: var(--size-step-1);
+  line-height: 1.4;
+  text-align: left; /* Default to left alignment */
+}
+
+.md-typeset > p > i {
+  display: block;
+  border-top: 1px solid;
+  border-bottom: 1px solid;
+  max-width: 260px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: calc(var(--spacing) / 4);
+  text-align: var(--align);
+}
+
+/* Heading styles (targeting Material's specific classes) */
+.md-typeset :is(h1, h2, h3, h4, h5) {
+  line-height: 1.2;
+  text-wrap: balance;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: calc(var(--spacing) * 2);
+  font-weight: 400;
+  position: relative;
+  text-align: var(--align); /* Center headings */
+}
+
+/* Heading sizes */
+.md-typeset h1 {
+  font-size: var(--size-step-4);
+  line-height: 1;
+}
+.md-typeset h2 {
+  font-size: var(--size-step-3);
+}
+.md-typeset h3 {
+  font-size: var(--size-step-2);
+}
+.md-typeset h4 {
+  font-size: var(--size-step-1);
+}
+.md-typeset h5 {
+  font-size: var(--size-step-0);
+}
+
+/* Heading decorative line (applied to h2-h5) */
+.md-typeset :is(h2, h3, h5)::after {
+  content: "";
+  width: calc(var(--spacing) * 3);
+  height: 2px;
+  background-color: var(--color-dark);
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.5rem;
+  margin: auto;
+  border-radius: 1px;
+}
+
+/* Lists - override Material's default list padding */
+.md-typeset :is(ul, ol) {
+  -webkit-padding-start: var(--spacing);
+  padding-inline-start: var(--spacing);
+  text-align: left; /* Keep list items left-aligned */
+}
+.md-typeset li {
+  margin: 0;
+}
+
+/* Blockquote/Quote Styles */
+.md-typeset blockquote {
+  font-style: italic;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 50ch;
+  text-align: var(--align); /* Center blockquote */
+}
+.md-typeset blockquote p {
+  font-size: var(--size-step-3);
+}
+
+/* --- Content Width (Line Length) --- */
+
+/* Setting maximum width for the main content block */
+.md-typeset {
+  max-width: 65ch; /* Applies to main content text */
+  margin-inline: auto;
+}
+/* Adjusting widths for headings within the main content block */
+.md-typeset h1 {
+  max-width: 24ch;
+}
+.md-typeset :is(h2, h3) {
+  max-width: 36ch;
+}
+/* NOTE: The max-width for the overall `.md-typeset` will control the line length.
+   This attempts to apply your desired line lengths where possible. */
+
+
+/* --- Header (Site Title/Logo) --- */
+
+/* Targeting the site name in the header */
+.md-header__button.md-logo a,
+.md-header__button.md-logo > .md-header__title {
+  text-decoration: none;
+}
+.md-header__button.md-logo:hover a {
+  text-decoration: none;
+  color: var(--color-primary);
+}
+
+/* The primary site title (if used in the header) */
+.md-header__title .md-header__ellipsis {
+  font-size: 1.5rem;
+  color:var(md-default-fg-color);
+  text-align: center;
+  margin: 0;
+  margin-bottom: calc(var(--spacing) / 2);
+  max-width: 100%;
+}
+
+
+/* --- Code Blocks and Inline Code --- */
+
+/* Inline code and code blocks */
+.md-typeset :is(.highlight, code) {
+  padding: 1px var(--spacing);
+  background-color: var(--md-code-bg-color);
+  border-radius: 3px;
+  line-height: 1.2;
+  font-size: var(--size-step-0);
+  text-align: left;
+}
+
+/* Specific styling for fenced code blocks (like Python/JS examples) */
+.md-typeset pre > code {
+  padding: var(--spacing); /* Adjust padding for block code */
+  display: block;
+
+
+@media screen and (min-width: 600px) {
+  html {
+    font-size: 16px;
+  }
+
+}
