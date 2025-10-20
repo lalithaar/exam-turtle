@@ -32,3 +32,6 @@ extra:
   analytics:
     provider: google
     property: GTM-5TJJTHD7
+
+extra_files:
+  - google2778dc067df38145.html
