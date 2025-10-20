@@ -1,5 +1,7 @@
 site_name: Exam Turtle
 site_url: https://lalithaar.github.io/exam-turtle/docs
+site_description: Free & open-source, spaced repetition app for topic-based learning.
+
 
 theme:
   name: material
