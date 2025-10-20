@@ -27,3 +27,8 @@ markdown_extensions:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - footnotes
+
+extra:
+  analytics:
+    provider: google
+    property: GTM-5TJJTHD7
