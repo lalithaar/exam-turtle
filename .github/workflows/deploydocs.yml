@@ -1,0 +1,42 @@
+name: Deploy MkDocs Material to GitHub Pages
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Optional: Reason for triggering the manual documentation build'
+        required: false
+        default: 'Manual documentation update'
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: 📦 Install Dependencies
+        run: |
+          pip install mkdocs mkdocs-material
+
+      - name: ⚙️ Build MkDocs Site
+        run: |
+          mkdocs build
+
+      - name: 🚀 Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          # Use a clean commit message, optionally including the manual reason
+          commit_message: "Docs Build: ${{ github.event.inputs.reason || 'Manual update' }}"
