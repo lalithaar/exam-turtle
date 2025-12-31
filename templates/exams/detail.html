@@ -368,6 +368,55 @@
     </div>
 </div>
 
+<!-- Edit Exam Modal -->
+<div id="editExamModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 600px;">
+        <button class="modal-close" onclick="closeModal('editExamModal')">&times;</button>
+        <div class="modal-header">
+            <h3>Edit Exam</h3>
+        </div>
+        
+        <form method="POST" action="{{ url_for('bp.update_exam', exam_id=exam.id) }}">
+            <div class="form-group">
+                <label for="edit_exam_name">Exam Name *</label>
+                <input type="text" name="exam_name" id="edit_exam_name" class="form-control" value="{{ exam.name }}" required>
+            </div>
+            
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label for="edit_exam_date">Exam Date *</label>
+                    <input type="date" name="exam_date" id="edit_exam_date" class="form-control" value="{{ exam.exam_date.strftime('%Y-%m-%d') }}" required>
+                </div>
+                
+                <div class="form-group" style="flex: 1;">
+                    <label for="edit_importance">Importance</label>
+                    <select name="importance" id="edit_importance" class="form-control">
+                        <option value="low" {% if exam.importance == 'low' %}selected{% endif %}>Low</option>
+                        <option value="medium" {% if exam.importance == 'medium' %}selected{% endif %}>Medium</option>
+                        <option value="high" {% if exam.importance == 'high' %}selected{% endif %}>High</option>
+                        <option value="critical" {% if exam.importance == 'critical' %}selected{% endif %}>Critical</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="edit_exam_type">Exam Type</label>
+                <input type="text" name="exam_type" id="edit_exam_type" class="form-control" value="{{ exam.exam_type or '' }}" placeholder="e.g., Final Exam, Midterm, Quiz, Certification">
+            </div>
+            
+            <div class="form-group">
+                <label for="edit_description">Description</label>
+                <textarea name="description" id="edit_description" class="form-control" rows="3" placeholder="Optional description...">{{ exam.description or '' }}</textarea>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn btn-success" style="flex: 1;">Save Changes</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editExamModal')" style="flex: 1;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}

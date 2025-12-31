@@ -342,8 +342,65 @@
     </div>
 </div>
 
+<!-- Edit Topic Modal -->
+<div id="editTopicModal" class="modal-overlay">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('editTopicModal')">&times;</button>
+        <div class="modal-header">
+            <h3>Edit Topic</h3>
+        </div>
+        
+        <form method="POST" action="{{ url_for('bp.update_topic', topic_id=topic.id) }}">
+            <div class="form-group">
+                <label for="edit_name">Topic Name *</label>
+                <input type="text" name="name" id="edit_name" class="form-control" value="{{ topic.name }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="edit_subject">Subject</label>
+                <input type="text" name="subject" id="edit_subject" class="form-control" value="{{ topic.subject or '' }}" placeholder="e.g., Mathematics, Physics, Chemistry">
+            </div>
+            
+            <div class="form-group">
+                <label for="edit_description">Description</label>
+                <textarea name="description" id="edit_description" class="form-control" rows="3" placeholder="Optional description...">{{ topic.description or '' }}</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="edit_complexity">Complexity (1-10)</label>
+                <input type="range" name="complexity_rating" id="edit_complexity" min="1" max="10" value="{{ topic.complexity_rating or 5 }}" class="form-control">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666;">
+                    <span>Simple</span>
+                    <span id="editComplexityValue">{{ topic.complexity_rating or 5 }}</span>
+                    <span>Complex</span>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn btn-success" style="flex: 1;">Save Changes</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editTopicModal')" style="flex: 1;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
-<!-- add confirm delete later -->
+<script>
+    function confirmDelete() {
+        if (confirm('Are you sure you want to delete "{{ topic.name }}"? This action cannot be undone and will remove all review history for this topic.')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ url_for("bp.delete_topic", topic_id=topic.id) }}';
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+    
+    // Update complexity rating display in edit modal
+    document.getElementById('edit_complexity').addEventListener('input', function(e) {
+        document.getElementById('editComplexityValue').textContent = e.target.value;
+    });
+</script>
 {% endblock %}

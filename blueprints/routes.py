@@ -612,6 +612,133 @@ def exam_detail(exam_id):
     )
 
 
+@bp.route("/topics/<int:topic_id>/update", methods=["POST"])
+def update_topic(topic_id):
+    """Update an existing topic"""
+    try:
+        topic = Topic.query.get_or_404(topic_id)
+        
+        name = request.form.get("name", "").strip()
+        subject = request.form.get("subject", "").strip()
+        description = request.form.get("description", "").strip()
+        complexity_rating = request.form.get("complexity_rating", topic.complexity_rating)
+        
+        if not name:
+            flash("Topic name is required", "error")
+            return redirect(url_for("bp.topic_detail", topic_id=topic_id))
+        
+        # Check for duplicate names (excluding current topic)
+        existing = Topic.query.filter(Topic.name.ilike(name), Topic.id != topic_id).first()
+        if existing:
+            flash(f'Another topic with name "{name}" already exists', "error")
+            return redirect(url_for("bp.topic_detail", topic_id=topic_id))
+        
+        # Update topic
+        topic.name = name
+        topic.subject = subject if subject else None
+        topic.description = description if description else None
+        topic.complexity_rating = float(complexity_rating)
+        
+        db.session.commit()
+        
+        flash(f'Topic "{name}" updated successfully!', "success")
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error updating topic: {str(e)}", "error")
+    
+    return redirect(url_for("bp.topic_detail", topic_id=topic_id))
+
+
+@bp.route("/topics/<int:topic_id>/delete", methods=["POST"])
+def delete_topic(topic_id):
+    """Delete a topic and all associated data"""
+    try:
+        topic = Topic.query.get_or_404(topic_id)
+        topic_name = topic.name
+        
+        # Delete associated review sessions
+        ReviewSession.query.filter_by(topic_id=topic_id).delete()
+        
+        # Delete exam associations
+        ExamTopic.query.filter_by(topic_id=topic_id).delete()
+        
+        # Delete the topic
+        db.session.delete(topic)
+        db.session.commit()
+        
+        flash(f'Topic "{topic_name}" and all associated data deleted successfully', "success")
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error deleting topic: {str(e)}", "error")
+    
+    return redirect(url_for("bp.topics_list"))
+
+
+@bp.route("/exams/<int:exam_id>/update", methods=["POST"])
+def update_exam(exam_id):
+    """Update an existing exam"""
+    try:
+        exam = Exam.query.get_or_404(exam_id)
+        
+        exam_name = request.form.get("exam_name", "").strip()
+        exam_date_str = request.form.get("exam_date", "").strip()
+        description = request.form.get("description", "").strip()
+        importance = request.form.get("importance", exam.importance)
+        exam_type = request.form.get("exam_type", "").strip()
+        
+        if not exam_name or not exam_date_str:
+            flash("Exam name and date are required", "error")
+            return redirect(url_for("bp.exam_detail", exam_id=exam_id))
+        
+        try:
+            exam_date_obj = datetime.strptime(exam_date_str, "%Y-%m-%d").date()
+        except ValueError:
+            flash("Invalid date format", "error")
+            return redirect(url_for("bp.exam_detail", exam_id=exam_id))
+        
+        # Update exam
+        exam.name = exam_name
+        exam.exam_date = exam_date_obj
+        exam.description = description if description else None
+        exam.importance = importance
+        exam.exam_type = exam_type if exam_type else None
+        
+        db.session.commit()
+        
+        flash(f'Exam "{exam_name}" updated successfully!', "success")
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error updating exam: {str(e)}", "error")
+    
+    return redirect(url_for("bp.exam_detail", exam_id=exam_id))
+
+
+@bp.route("/exams/<int:exam_id>/delete", methods=["POST"])
+def delete_exam(exam_id):
+    """Delete an exam and its topic associations"""
+    try:
+        exam = Exam.query.get_or_404(exam_id)
+        exam_name = exam.name
+        
+        # Delete topic associations (but not the topics themselves)
+        ExamTopic.query.filter_by(exam_id=exam_id).delete()
+        
+        # Delete the exam
+        db.session.delete(exam)
+        db.session.commit()
+        
+        flash(f'Exam "{exam_name}" deleted successfully. Topics remain intact.', "success")
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error deleting exam: {str(e)}", "error")
+    
+    return redirect(url_for("bp.exams_list"))
+
+
 @bp.route("/exams/<int:exam_id>/archive", methods=["POST"])
 def archive_exam(exam_id):
     """Implement soft delete"""
@@ -621,18 +748,6 @@ def archive_exam(exam_id):
 @bp.route("/topics/<int:topic_id>/archive", methods=["POST"])
 def archive_topic(topic_id):
     """Implement soft delete"""
-    pass
-
-
-@bp.route("/exams/<int:exam_id>/edit", methods=["POST"])
-def edit_exam(exam_id):
-    pass
-    
-
-
-@bp.route("/topics/<int:topic_id>/edit", methods=["POST"])
-def edit_topic(topic_id):
-    topic = Topic.query.get(topic_id)
     pass
 
 
