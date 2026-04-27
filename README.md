@@ -79,8 +79,4 @@ The race isn't won by who grinds hardest—it's won by who takes the best care o
 
 > *Welcome to the turtle way: slow, steady, and kind to yourself.* 🐢
 
-## Ya Devi Sarva Bhuteshu Buddhi Roopena Samsthita
 
-*Salutations to the Goddess who dwells in all beings in the form of intelligence.*
-
-Intelligence is not ours to claim—it flows through us when we create the right conditions: rest, nourishment, consistency, and care.
