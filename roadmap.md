@@ -6,5 +6,5 @@
 4. Add edit topic feature
 
 
-# Future ideas
-1. Add timing the review with pomodoro tracking and notifications
+<!-- # Future ideas -->
+<!-- 1. Add timing the review with pomodoro tracking and notifications -->

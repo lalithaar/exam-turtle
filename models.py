@@ -1190,9 +1190,11 @@ def get_due_topics(limit: int = 20) -> List[Topic]:
 
 def get_upcoming_exams(days_ahead: int = 30) -> List[Exam]:
     """Get exams coming up within specified days"""
-    cutoff_date = date.today() + timedelta(days=days_ahead)
+    # Use IST date to ensure accuracy per user request
+    today = now_ist().date()
+    cutoff_date = today + timedelta(days=days_ahead)
     return (
-        Exam.query.filter(Exam.exam_date >= date.today(), Exam.exam_date <= cutoff_date)
+        Exam.query.filter(Exam.exam_date >= today, Exam.exam_date <= cutoff_date)
         .order_by(Exam.exam_date.asc())
         .all()
     )

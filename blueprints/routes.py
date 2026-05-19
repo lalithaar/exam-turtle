@@ -280,6 +280,7 @@ def topics_list():
             "has_prev": has_prev,
             "has_next": has_next,
         },
+        future_exams=get_upcoming_exams(days_ahead=365),  # Pass future exams for the modal
     )
 
 
@@ -311,6 +312,21 @@ def create_topic():
         )
 
         db.session.add(topic)
+        db.session.flush()  # Get topic ID
+
+        # Handle exam associations
+        exam_ids = request.form.getlist("exam_ids")
+        for exam_id in exam_ids:
+            if exam_id.strip():
+                exam = Exam.query.get(int(exam_id))
+                if exam:
+                    exam_topic = ExamTopic(
+                        exam_id=exam.id,
+                        topic_id=topic.id,
+                        importance_weight=1.0  # Default weight
+                    )
+                    db.session.add(exam_topic)
+
         db.session.commit()
 
         flash(f'Topic "{name}" created successfully!', "success")
@@ -376,6 +392,8 @@ def topic_detail(topic_id):
         recent_reviews=recent_reviews,
         upcoming_exams=upcoming_exams,
         reviews_pagination=reviews_pagination,
+        future_exams=get_upcoming_exams(days_ahead=365),  # Pass future exams for the edit modal
+        associated_exam_ids=[assoc.exam_id for assoc in topic.exam_associations], # Pre-fetch for checkbox state
     )
 
 
@@ -593,13 +611,21 @@ def exam_detail(exam_id):
     for item in topics_with_readiness:
         readiness_counts[item["readiness_category"]] += 1
 
+    # Get all topics for edit modal
+    all_topics = Topic.query.order_by(Topic.subject, Topic.name).all()
+    topics_by_subject = {}
+    for topic in all_topics:
+        subject = topic.subject or "General"
+        if subject not in topics_by_subject:
+            topics_by_subject[subject] = []
+        topics_by_subject[subject].append(topic)
+
     return render_template(
         "exams/detail.html",
         exam=exam,
         prep_summary=prep_summary,
-        topics_with_readiness=paginated_topics,
-        recent_reviews=recent_reviews,
         readiness_distribution=readiness_counts,
+        topics_with_readiness=paginated_topics,
         pagination={
             "page": page,
             "per_page": per_page,
@@ -608,7 +634,10 @@ def exam_detail(exam_id):
             "has_prev": page > 1,
             "has_next": page < total_pages,
         },
+        recent_reviews=recent_reviews,
         today=get_today(),
+        topics_by_subject=topics_by_subject,
+        associated_topic_ids=[assoc.topic_id for assoc in exam.topic_associations], # Pre-fetch for checkbox state
     )
 
 
@@ -632,8 +661,71 @@ def edit_exam(exam_id):
 
 @bp.route("/topics/<int:topic_id>/edit", methods=["POST"])
 def edit_topic(topic_id):
-    topic = Topic.query.get(topic_id)
-    pass
+    """Edit an existing topic"""
+    try:
+        topic = Topic.query.get_or_404(topic_id)
+        
+        name = request.form.get("name", "").strip()
+        subject = request.form.get("subject", "").strip()
+        description = request.form.get("description", "").strip()
+        complexity_rating = request.form.get("complexity_rating", 5.0)
+
+        if not name:
+            flash("Topic name is required", "error")
+            return redirect(url_for("bp.topic_detail", topic_id=topic.id))
+
+        # Check for duplicates (excluding current topic)
+        existing = Topic.query.filter(Topic.name.ilike(name), Topic.id != topic.id).first()
+        if existing:
+            flash(f'Topic "{name}" already exists', "error")
+            return redirect(url_for("bp.topic_detail", topic_id=topic.id))
+
+        # Update topic details
+        topic.name = name
+        topic.subject = subject if subject else None
+        topic.description = description if description else None
+        topic.complexity_rating = float(complexity_rating)
+
+        # Update exam associations
+        selected_exams = set(request.form.getlist("exam_ids"))
+        
+        # Remove unselected exams (only if they are future exams, to preserve history if needed, 
+        # but for simplicity and user expectation, we'll sync with selection)
+        # Actually, let's only remove associations for exams that are in the "future" list presented to the user
+        # or just sync completely. The requirement is "Add 'select exams' multiselect".
+        # Let's sync completely with the selection, but we need to be careful about past exams.
+        # If the user can only see future exams, they can't select past exams.
+        # So if we replace all associations, we might lose past exam records.
+        # Strategy: Only modify associations for exams that are "future" (available in the form).
+        # Keep past exam associations as is.
+        
+        future_exams = get_upcoming_exams(days_ahead=365)
+        future_exam_ids = {str(e.id) for e in future_exams}
+        
+        # 1. Remove associations for future exams that are NOT selected
+        for assoc in topic.exam_associations:
+            if str(assoc.exam_id) in future_exam_ids and str(assoc.exam_id) not in selected_exams:
+                db.session.delete(assoc)
+        
+        # 2. Add associations for selected exams that don't exist
+        existing_exam_ids = {str(assoc.exam_id) for assoc in topic.exam_associations}
+        for exam_id in selected_exams:
+            if exam_id and exam_id not in existing_exam_ids:
+                exam_topic = ExamTopic(
+                    exam_id=int(exam_id),
+                    topic_id=topic.id,
+                    importance_weight=1.0
+                )
+                db.session.add(exam_topic)
+
+        db.session.commit()
+        flash(f'Topic "{topic.name}" updated successfully!', "success")
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error updating topic: {str(e)}", "error")
+
+    return redirect(url_for("bp.topic_detail", topic_id=topic_id))
 
 
 # ============================================================================
